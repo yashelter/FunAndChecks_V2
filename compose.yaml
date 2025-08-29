@@ -1,0 +1,19 @@
+﻿services:
+  funandchecks:
+    image: funandchecks
+    build:
+      context: .
+      dockerfile: FunAndChecks/Dockerfile
+
+  telegrambot:
+    image: telegrambot
+    build:
+      context: .
+      dockerfile: TelegramBot/Dockerfile
+
+  adminbot:
+    image: adminbot
+    build:
+      context: .
+      dockerfile: AdminBot/Dockerfile
+

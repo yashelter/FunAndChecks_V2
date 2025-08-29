@@ -1,0 +1,96 @@
+@page "/results/subject/{id:int}"
+@model FunAndChecks.Pages.Results.Subject
+
+@{
+    Layout = "_Layout";
+}
+
+@{ ViewData["Title"] = $"Результаты по предмету: {Model.Results?.SubjectName}"; }
+    
+@if (Model.Results != null)
+{
+    <h1>@ViewData["Title"]</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Группа</th>
+            @foreach (var task in Model.Results.TaskHeaders)
+            {
+                <th>@task.TaskName</th>
+            }
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var user in Model.Results.UserResults.OrderBy(u => u.FullName))
+        {
+            <tr>
+                <td>@user.FullName</td>
+                <td>@user.GroupName</td>
+                @foreach (var task in Model.Results.TaskHeaders)
+                {
+                    <td id="result-cell-@user.UserId-@task.TaskId">
+                        @user.Results[task.TaskId]
+                    </td>
+                }
+            </tr>
+        }
+        </tbody>
+    </table>
+    @section Scripts {
+        <script src="~/js/signalr/signalr.min.js"></script>
+        <script>
+        // Создаем подключение к ResultsHub
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/resultsHub") // URL нашего нового хаба
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // ID текущего предмета из модели Razor
+        const subjectId = @Model.Results.SubjectId;
+
+        // Регистрируем обработчик события "ResultUpdated"
+        connection.on("ResultUpdated", (update) => {
+            console.log("Result update received:", update);
+
+            // Собираем ID ячейки на основе данных из обновления
+            const cellId = `result-cell-${update.userId}-${update.taskId}`;
+            
+            // Находим ячейку в таблице
+            const cell = document.getElementById(cellId);
+
+            if (cell) {
+                // Обновляем текст в ячейке
+                cell.textContent = update.newStatus;
+                
+                // Бонус: добавляем CSS-класс для анимации
+                cell.classList.add('updated');
+                setTimeout(() => cell.classList.remove('updated'), 1500); // Убираем класс через 1.5с
+            }
+        });
+
+        // Функция для старта подключения
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected to ResultsHub.");
+
+                // После подключения вызываем метод на сервере для подписки на этот предмет
+                await connection.invoke("SubscribeToSubjectResults", subjectId);
+                console.log(`Subscribed to results for subject ${subjectId}`);
+
+            } catch (err) {
+                console.error(err);
+                setTimeout(start, 5000); // Пробуем переподключиться
+            }
+        };
+
+        connection.onclose(async () => {
+            await start();
+        });
+
+        // Запускаем подключение
+        start();
+    </script>
+    }
+}
