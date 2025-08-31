@@ -320,25 +320,48 @@ public class AdminController(
         return NoContent();
     }
     
+    [HttpGet("get/user/{userId}/task-logs/{taskId}")]
+    public async Task<ActionResult<TaskLog>> GetTaskLog(string userId, int taskId)
+    {
+        var res = await context.UserTaskSubmissions
+            .Where(ts => ts.TaskId == taskId && ts.UserId.ToString() == userId)
+            .Select(ts => new TaskLog(ts.Status, ts.Comment, 
+                context.Users.Where(u => u.Id == ts.UserId)
+                    .Select(u => new UserDto(u.Id,
+                        u.FirstName,
+                        u.LastName,
+                        u.Color)).FirstOrDefault()
+                , ts.SubmissionDate))
+            .OrderBy(tl => tl.SubmissionDate)
+            .ToListAsync();
+            
+        if (res.Count < 1)
+        {
+            return NotFound($"No user {userId} logs for such task {taskId} not found.");
+        }
+
+        return Ok(res);
+    }
     
-    [HttpGet("get/users/{studentId}")]
-    public async Task<ActionResult<FullUserDto>> GetStudentById(string studentId)
+    
+    [HttpGet("get/user/{userId}")]
+    public async Task<ActionResult<FullUserDto>> GetUserById(string userId)
     {
         var user =  await context.Users
-            .Where(u => u.Id.ToString() == studentId)
-            .Select(ge => new FullUserDto(studentId, ge.FirstName, ge.LastName, ge.TelegramUserId, ge.Color, ge.GitHubUrl))
+            .Where(u => u.Id.ToString() == userId)
+            .Select(ge => new FullUserDto(userId, ge.FirstName, ge.LastName, ge.TelegramUserId, ge.Color, ge.GitHubUrl))
             .FirstOrDefaultAsync();
         
         if (user == null)
         {
-            return NotFound($"User with ID {studentId} not found.");
+            return NotFound($"User with ID {userId} not found.");
         }
         return Ok(user);
     }
     
     
     [HttpGet("get-all/users/{groupId}")]
-    public async Task<ActionResult<List<FullUserDto>>> GetStudentsByGroupId(int groupId)
+    public async Task<ActionResult<List<FullUserDto>>> GetUsersByGroupId(int groupId)
     {
         return await context.Users
             .Where(u => u.Group != null && u.Group.Id == groupId)

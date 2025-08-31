@@ -2,8 +2,7 @@ using AdminBot.Models;
 using FunAndChecks.DTO;
 using Telegram.Bot.Types;
 
-
-namespace AdminBot.Services.Queue;
+namespace AdminBot.BotCommands.Queue;
 
 
 public interface IQueueController
@@ -14,7 +13,7 @@ public interface IQueueController
     /// <param name="userId"></param>
     /// <param name="eventId"></param>
     /// <returns></returns>
-    Task<QueueSubcription> SubscribeToQueueEvent(long userId, int eventId);
+    Task<QueueSubscription> SubscribeToQueueEvent(long userId, int eventId);
     
     /// <summary>
     /// Обновляет сообщение об очереди
@@ -22,11 +21,11 @@ public interface IQueueController
     /// <param name="subscription"></param>
     /// <param name="update"></param>
     /// <returns></returns>
-    Task UpdateQueueStatus(QueueSubcription subscription, QueueUserUpdateDto update);
+    Task UpdateQueueStatus(QueueSubscription subscription, QueueUserUpdateDto update);
     
 
     Task HandleQueueCallbackAction(Update update);
 
-    Task HandleNewQueueSubscription(int userId, int queueId);
+    Task HandleNewQueueSubscription(long userId, int queueId);
 
 }

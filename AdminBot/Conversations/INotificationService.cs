@@ -15,6 +15,7 @@ public interface INotificationService
     
     Task<Message> SendTextMessageAsync(long chatId, string text, InlineKeyboardMarkup? replyMarkup = null, ParseMode parseMode = ParseMode.Html);
     
-    Task SendConfirmationAsync(long chatId, string text, string yesCallback, string noCallback);
+    Task SendConfirmationAsync(long chatId, string text, string yesCallback, string noCallback,
+        string yesReply = "✅ Подтвердить", string noReply = "❌ Отмена");
     
 }

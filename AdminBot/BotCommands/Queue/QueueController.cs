@@ -1,60 +1,110 @@
+using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
 using AdminBot.Models;
 using AdminBot.Services.ApiClient;
 using AdminBot.Services.Keyboard;
+using AdminBot.Services.QueueManager;
 using FunAndChecks.DTO;
 using FunAndChecks.Models.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using AdminBot.Services.Utils;
+using static AdminBot.Services.Controllers.DataGetterController;
+using static AdminBot.Utils.InputParser;
 
-namespace AdminBot.Services.Queue;
+
+namespace AdminBot.BotCommands.Queue;
 
 public class QueueController(
     INotificationService bot,
     ILogger<QueueController> logger,
-    IApiClient apiClient
+    IApiClient apiClient,
+    IConversationManager conversationManager,
+    IQueueManager queueManager
     )
     : IQueueController
 {
     
-    public async Task<QueueSubcription> SubscribeToQueueEvent(long userId, int eventId)
+    public async Task<QueueSubscription> SubscribeToQueueEvent(long userId, int eventId)
     {
+        var queue = await apiClient.GetQueueDetails(eventId);
+        
+        var participants = 
+            queue?.Participants ??
+            throw new ArgumentException($"Can't get queue {eventId}", nameof(eventId));
+        
         var message = await bot.SendTextMessageAsync(userId, 
             "Очередь:",
             await RenderQueue(
-                (await apiClient.GetQueueDetails(eventId))?.Participants ?? 
-                throw new ArgumentException($"Can't get queue {eventId}", nameof(eventId)), 
-                1, 
+                participants, 
+                0, 
                 $"queue_{eventId}")
         );
 
-        return new QueueSubcription()
+        return new QueueSubscription()
         {
             EventId = eventId,
             MessageId = message.MessageId,
             UserId = userId,
+            EventName = $"{queue.EventDateTime.ToShortDateString()} -- {queue.EventName}",
+            SubjectId = queue.SubjectId
         };
     }
     
 
-    public async Task UpdateQueueStatus(QueueSubcription subscription, QueueUserUpdateDto update)
+    public async Task UpdateQueueStatus(QueueSubscription subscription, QueueUserUpdateDto update)
     {
         throw new NotImplementedException();
     }
 
+    
     public async Task HandleQueueCallbackAction(Update update)
     {
         if (update.Type != UpdateType.CallbackQuery || update.CallbackQuery is null) throw new ArgumentException(nameof(update));
-        
+        var callback = update.GetCallbackText();
+        // Формат: queue_2:01990041-ad21-792d-a63d-1d6c86063b19
         logger.LogInformation("Got {CallbackQueryMessage} in queue Handler", update.CallbackQuery.Message);
+
+        var data = ParseQueueCallbackData(callback);
+
+        if (data is null)
+        {
+            return;
+        }
         
+        int eventId = data.Value.EventId;
+        string participantId = data.Value.ParticipantId;
+
+        var sub = await queueManager.GetSubscription(update.GetUserId(), eventId);
         
-        throw new NotImplementedException();
+        var flow = new CreateSubmissionFlow();
+        CreateSubmissionState state =  new CreateSubmissionState()
+        {
+            StudentId = participantId,
+            SubjectId = sub.SubjectId,
+            ChatId = update.GetChatId(),
+            UserId = update.GetUserId(),
+        };
+        
+        flow.AtEnd = async () =>
+        {
+            var subs = await SubscribeToQueueEvent(update.GetUserId(), eventId);
+            var res = await queueManager.SubscribeUserToQueue(subs);
+                
+            await bot.EditMessageTextAsync(
+                update.GetChatId(), 
+                update.GetMessageId(),
+                $"Очередь была отправлена новым сообщением",
+                replyMarkup: null);
+        };
+        
+        await conversationManager.StartFlowAsync(flow, update.GetChatId(), update.GetUserId(), state);
     }
     
     
-    public async Task HandleNewQueueSubscription(int userId, int queueId)
+    public async Task HandleNewQueueSubscription(long userId, int queueId)
     {
       //  bot.SendTextMessageAsync(userId, "")
     }
@@ -87,7 +137,7 @@ public class QueueController(
     }
 
     
-    private string GetQueueStatusEmote(QueueUserStatus status) => status switch
+    private static string GetQueueStatusEmote(QueueUserStatus status) => status switch
     {
         QueueUserStatus.Checking  => "🎯",
         QueueUserStatus.Finished  => "🏳️",
@@ -96,7 +146,7 @@ public class QueueController(
         _ => throw new ArgumentOutOfRangeException(nameof(status), $"Not expected status value: {status}"),
     };
     
-    private string GetQueueParticipantColor(string color) => color switch
+    private static string GetQueueParticipantColor(string color) => color switch
     {
         "#E68800"  => "🟤 ",
         "#07FF00"  => "🟢 ",

@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using FunAndChecks.Data;
 using FunAndChecks.DTO;
+using FunAndChecks.Hub;
 using FunAndChecks.Models;
 using FunAndChecks.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FunAndChecks.Controllers;
@@ -17,11 +19,13 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<QueueHub> _hubContext;
 
-    public UsersController(UserManager<User> userManager, ApplicationDbContext context)
+    public UsersController(UserManager<User> userManager, IHubContext<QueueHub> hubContext, ApplicationDbContext context)
     {
         _userManager = userManager;
         _context = context;
+        _hubContext = hubContext;
     }
 
     [HttpGet("me")]
@@ -123,6 +127,12 @@ public class UsersController : ControllerBase
         
         _context.QueueUsers.Add(queueUser);
         await _context.SaveChangesAsync();
+        
+        string groupName = $"queue-{eventId}";
+        var updateDto = new QueueUserUpdateDto(eventId, userId, QueueUserStatus.Waiting, null);
+
+        await _hubContext.Clients.Group(groupName).SendAsync("QueueUserUpdated", updateDto);
+
         
         return Ok();
     }

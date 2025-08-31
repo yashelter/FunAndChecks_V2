@@ -1,7 +1,8 @@
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Models;
 using AdminBot.Services.ApiClient;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
 using AdminBot.Services.Utils;
 
 
@@ -12,13 +13,13 @@ using static Services.Controllers.DataGetterController;
 public class GetAllQueuesFlow: ConversationFlow
 {
 
-    public GetAllQueuesFlow(IQueueController queueController, IApiClient apiClient)
+    public GetAllQueuesFlow(IQueueManager queueManager, IQueueController queueController)
     {
         var askNameStep = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
-                var events = await GetAllQueueEvents(apiClient);
+                var events = await GetAllQueueEvents(manager.ApiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите событие:",
                     replyMarkup: events);
             },
@@ -28,7 +29,7 @@ public class GetAllQueuesFlow: ConversationFlow
                 
                 if (view.CallbackName == "page")
                 {
-                    var events = await GetAllQueueEvents(apiClient, page: int.Parse(view.ExtraParam!));
+                    var events = await GetAllQueueEvents(manager.ApiClient, page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
@@ -36,21 +37,23 @@ public class GetAllQueuesFlow: ConversationFlow
                         replyMarkup: events);
                     return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
                 }
+
+                int queueId = int.Parse(view.CallbackParam);
+
+                var subs = await queueController.SubscribeToQueueEvent(update.GetUserId(), queueId);
+                var res = await queueManager.SubscribeUserToQueue(subs);
                 
                 await manager.NotificationService.EditMessageTextAsync(
                     update.GetChatId(), 
                     update.GetMessageId(),
-                    $"Что то выбралось: {view.CallbackParam}",
+                    $"Выбрана очередь: {res.EventName}",
                     replyMarkup: null);
-                
-                
-                // TODO: action
                 
                 return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
             }
         };
         
-        Steps = new List<FlowStep> { askNameStep };
+        Steps = [askNameStep];
     }
     
     

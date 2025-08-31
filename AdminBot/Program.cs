@@ -3,11 +3,12 @@ using AdminBot.BotCommands;
 using AdminBot.BotCommands.Commands.CreateCommands;
 using AdminBot.BotCommands.Commands.QueueCommands;
 using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Services;
 using AdminBot.Services.ApiClient;
 using AdminBot.Services.Controllers;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
 using Serilog;
 using Telegram.Bot;
 

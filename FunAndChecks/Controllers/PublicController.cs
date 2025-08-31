@@ -17,30 +17,7 @@ public class PublicController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("queue/{eventId}")]
-    public async Task<ActionResult<QueueStateDto>> GetQueueState(int eventId)
-    {
-        var queueEvent = await _context.QueueEvents
-            .Include(qe => qe.Participants).ThenInclude(p => p.User)
-            .Include(qe => qe.Participants).ThenInclude(p => p.CurrentAdmin)
-            .Where(qe => qe.Id == eventId)
-            .Select(qe => new QueueStateDto(
-                qe.Id,
-                qe.Name,
-                qe.EventDateTime,
-                qe.Participants.OrderBy(p => p.JoinTime).Select(p => new QueueParticipantDto(
-                    p.UserId,
-                    $"{p.User.FirstName} {p.User.LastName}",
-                    p.Status,
-                    p.JoinTime,
-                    p.CurrentAdmin != null ? $"{p.CurrentAdmin.FirstName} {p.CurrentAdmin.LastName}" : null
-                )).ToList()
-            ))
-            .FirstOrDefaultAsync();
-
-        if (queueEvent == null) return NotFound();
-        return Ok(queueEvent);
-    }
+   
 
     [HttpGet("results-table")]
     public async Task<ActionResult<List<ResultsTableRowDto>>> GetResultsTable()
@@ -126,7 +103,7 @@ public class PublicController : ControllerBase
     }
 
 
-    [HttpGet("queue/get/{eventId}/details")]
+    [HttpGet("get/queue/{eventId}")]
     [ProducesResponseType(typeof(QueueDetailsDto), 200)]
     public async Task<ActionResult<QueueDetailsDto>> GetQueueDetails(int eventId)
     {
@@ -136,6 +113,7 @@ public class PublicController : ControllerBase
                 qe.Id,
                 qe.Name,
                 qe.Subject.Name,
+                qe.SubjectId,
                 qe.EventDateTime,
                 qe.Participants
                     .OrderBy(p => p.JoinTime)
@@ -149,7 +127,7 @@ public class PublicController : ControllerBase
                             .Sum(s => s.Task.MaxPoints),
                         p.Status,
                         p.User.Color ?? "#000000",
-                        p.CurrentAdmin != null ? $"{p.CurrentAdmin.FirstName} {p.CurrentAdmin.LastName}" : null
+                        p.CurrentAdmin != null ? $"{p.CurrentAdmin.FirstName}" : null
                     )).ToList()
             ))
             .FirstOrDefaultAsync();
@@ -175,6 +153,19 @@ public class PublicController : ControllerBase
         if (subject == null) return NotFound();
 
         return Ok(subject);
+    }
+    
+    [HttpGet("get/user/{userId}")]
+    public async Task<ActionResult<UserDto>> GetUser(Guid userId)
+    {
+        var user = await _context.Users
+            .Where(s => s.Id == userId)
+            .Select(s => new UserDto(s.Id, s.FirstName, s.LastName, s.Color))
+            .FirstOrDefaultAsync();
+
+        if (user == null) return NotFound();
+
+        return Ok(user);
     }
 
 
@@ -206,6 +197,52 @@ public class PublicController : ControllerBase
             .Select(s => new SubjectDto(s.Id, s.Name))
             .ToListAsync();
     }
+    
+    [HttpGet("get-all/tasks/{subjectId}")]
+    public async Task<ActionResult<List<TaskDto>>> GetTasks(int subjectId)
+    {
+        return await _context.Tasks.Where(t => t.SubjectId == subjectId)
+            .Select(t => new TaskDto(t.Id, t.Name, t.Description, t.MaxPoints))
+            .ToListAsync();
+    }
+    
+    /// <summary>
+    /// Возвращает список задач, со статусами, на конкретного пользователя
+    /// </summary>*
+    /// <param name="subjectId"></param>
+    /// <returns></returns>
+    [HttpGet("subjects/{subjectId}/tasks/user/{userId}")]
+    [ProducesResponseType(typeof(List<TaskUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<TaskUserDto>>> GetUserTasksForSubject(int subjectId, Guid userId)
+    {
+        var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == subjectId);
+        if (!subjectExists) return NotFound("Subject not found.");
+
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists) return NotFound("User not found.");
+
+        var tasksWithStatus = await _context.Tasks
+            .Where(task => task.SubjectId == subjectId)
+            .Select(task => new 
+            { Task = task, 
+                LastSubmission = task.Submissions
+                    .Where(sub => sub.UserId == userId)
+                    .OrderByDescending(sub => sub.SubmissionDate)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        var result = tasksWithStatus.Select(tws => new TaskUserDto(
+            tws.Task.Id,
+            tws.Task.Name,
+            tws.Task.Description,
+            tws.Task.MaxPoints,
+            tws.LastSubmission?.Status ?? SubmissionStatus.NotSubmitted
+        )).ToList();
+        
+        return Ok(result);
+    }
 
 
     [HttpGet("get-all/queue/events")]
@@ -222,7 +259,7 @@ public class PublicController : ControllerBase
     {
         return await _context.Users
             .Where(u => u.Group != null && u.Group.Id == groupId)
-            .Select(ge => new UserDto(ge.Id.ToString(), ge.FirstName, ge.LastName, ge.Color))
+            .Select(ge => new UserDto(ge.Id, ge.FirstName, ge.LastName, ge.Color))
             .ToListAsync();
     }
 

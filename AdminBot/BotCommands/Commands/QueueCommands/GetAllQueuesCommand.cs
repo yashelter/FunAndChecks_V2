@@ -1,19 +1,20 @@
 using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Services.ApiClient;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
 using AdminBot.Services.Utils;
 using Telegram.Bot.Types;
 
 namespace AdminBot.BotCommands.Commands.QueueCommands;
 
-public class GetAllQueuesCommand(IQueueController controller, IApiClient api, IConversationManager conversationManager) : IBotCommand
+public class GetAllQueuesCommand(IConversationManager conversationManager, IQueueManager queueManager, IQueueController queueController) : IBotCommand
 {
     public string Name { get; } = "/get_all_queues";
     
     public async Task ExecuteAsync(Update update)
     {
-        var flow = new GetAllQueuesFlow(controller, api);
+        var flow = new GetAllQueuesFlow(queueManager,  queueController);
         await conversationManager.StartFlowAsync(flow, update.GetChatId(), update.GetUserId());
     }
 }

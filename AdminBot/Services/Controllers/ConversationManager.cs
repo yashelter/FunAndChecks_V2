@@ -19,9 +19,9 @@ public class ConversationManager(
     public IApiClient ApiClient { get; } = apiClient;
     
 
-    public async Task StartFlowAsync(ConversationFlow flow, long chatId, long userId)
+    public async Task StartFlowAsync(ConversationFlow flow, long chatId, long userId, ConversationState? initialState = null)
     {
-        var state = flow.CreateStateObject(chatId, userId);
+        var state = initialState ?? flow.CreateStateObject(chatId, userId);
         
         var session = new ConversationSession
         {

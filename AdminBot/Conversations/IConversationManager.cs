@@ -5,7 +5,7 @@ namespace AdminBot.Conversations;
 
 public interface IConversationManager
 {
-    Task StartFlowAsync(ConversationFlow flow, long chatId, long userId);
+    Task StartFlowAsync(ConversationFlow flow, long chatId, long userId,  ConversationState? initialState = null);
     
     Task ProcessResponseAsync(Update update);
     

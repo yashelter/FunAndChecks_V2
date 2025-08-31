@@ -42,9 +42,6 @@ public class CreateTaskFlow: ConversationFlow
                     update.GetMessageId(),
                     replyMarkup: null);
                 
-                await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), 
-                    $"Что то выбралось: {view.CallbackParam}");
-
                 state.SubjectId = int.Parse(view.CallbackParam);
                 
                 return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };

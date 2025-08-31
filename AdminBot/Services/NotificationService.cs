@@ -38,12 +38,14 @@ public class NotificationService(
             replyMarkup: replyMarkup);
     }
 
-    public async Task SendConfirmationAsync(long chatId, string text, string yesCallback, string noCallback)
+    public async Task SendConfirmationAsync(long chatId, string text, string yesCallback, string noCallback,
+        string yesReply = "✅ Подтвердить", string noReply = "❌ Отмена"
+    )
     {
         var inlineKeyboard = new InlineKeyboardMarkup([
             [
-                InlineKeyboardButton.WithCallbackData(text: "✅ Подтвердить", callbackData: yesCallback),
-                InlineKeyboardButton.WithCallbackData(text: "❌ Отмена", callbackData: noCallback)
+                InlineKeyboardButton.WithCallbackData(text: yesReply, callbackData: yesCallback),
+                InlineKeyboardButton.WithCallbackData(text: noReply, callbackData: noCallback)
             ]
         ]);
 
