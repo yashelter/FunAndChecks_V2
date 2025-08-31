@@ -25,4 +25,12 @@ public static class DataGetterController
         return KeyboardGenerator.GenerateKeyboardPage(events, "all_queues_getter", page, lineSize: 1);
     }
     
+    public static async Task<InlineKeyboardMarkup> GetAllGroups(IApiClient apiClient, int page = 0)
+    {
+        var res = await apiClient.GetAllGroups();
+        var events = res.WrapGroups();
+        
+        return KeyboardGenerator.GenerateKeyboardPage(events, "all_groups_getter", page, lineSize: 1);
+    }
+    
 }

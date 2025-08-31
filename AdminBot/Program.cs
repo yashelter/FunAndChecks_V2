@@ -57,12 +57,16 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<GetAllQueuesFlow>();
         services.AddScoped<CreateQueueEventFlow>();
         services.AddScoped<CreateGroupFlow>();
+        services.AddScoped<CreateTaskFlow>();
+        //services.AddScoped<LinkGroupToSubjectFlow>();
         
         // commands section
         services.AddScoped<IBotCommand, CreateSubjectCommand>();
         services.AddScoped<IBotCommand, GetAllQueuesCommand>();
         services.AddScoped<IBotCommand, CreateQueueEventCommand>();
         services.AddScoped<IBotCommand, CreateGroupCommand>();
+        services.AddScoped<IBotCommand, CreateTaskCommand>();
+        services.AddScoped<IBotCommand, LinkGroupToSubjectCommand>();
 
         
     })

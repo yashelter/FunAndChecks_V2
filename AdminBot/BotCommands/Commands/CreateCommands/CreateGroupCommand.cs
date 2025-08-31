@@ -9,6 +9,7 @@ namespace AdminBot.BotCommands.Commands.CreateCommands;
 public class CreateGroupCommand(IConversationManager conversationManager) : IBotCommand
 {
     public string Name { get; } = "/create_group";
+    
     public async Task ExecuteAsync(Update update)
     {
         var flow = new CreateGroupFlow();

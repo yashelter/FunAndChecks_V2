@@ -98,7 +98,11 @@ public class ApiClient(
 
     public async Task<CreateQueueEventDto?> CreateQueueEvent(long userId, string name, DateTime? eventTime, int subjectId)
     {
-        ArgumentNullException.ThrowIfNull(eventTime);
+        if (!eventTime.HasValue)
+        {
+            throw new ArgumentNullException(nameof(eventTime));
+        }
+
         var requestDto = new CreateQueueEventDto(name, (DateTime) eventTime, subjectId);
         
         return await PostWithAuthAsync<CreateQueueEventDto, CreateQueueEventDto>(
@@ -106,5 +110,21 @@ public class ApiClient(
             "/api/admin/create/queue-event",
             requestDto
         );
+    }
+
+    public async Task LinkGroupToSubject(long userId, int groupId, int subjectId)
+    {
+        var requestDto = new LinkGroupToSubjectDto(groupId, subjectId);
+        
+        var result = await PostWithAuthAsync<LinkGroupToSubjectDto>(
+            userId, 
+            "/api/admin/link/group-to-subject",
+            requestDto
+        );
+
+        if (!result)
+        {
+            throw new InvalidOperationException("Something went wrong in LinkGroupToSubject");
+        }
     }
 }

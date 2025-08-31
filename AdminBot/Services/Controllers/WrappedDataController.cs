@@ -5,11 +5,17 @@ namespace AdminBot.Services.Controllers;
 
 public static class WrappedDataController
 {
-    public static List<WrappedData> GroupsToWrappedData(this List<GroupDto>? groups)
+    public static List<WrappedData> WrapGroups(this List<GroupDto>? groups)
     {
         ArgumentNullException.ThrowIfNull(groups);
-        return groups.Select(group =>
-            new WrappedData() { GetId = () => group.Id.ToString(), GetString = () => group.Name, }).ToList();
+        return groups
+            .OrderBy(group => group.Name)
+            .Select(group =>
+            new WrappedData()
+            {
+                GetId = () => group.Id.ToString(),
+                GetString = () => group.Name,
+            }).ToList();
     }
     
     public static List<WrappedData> WrapSubjects(this List<SubjectDto>? subjects)

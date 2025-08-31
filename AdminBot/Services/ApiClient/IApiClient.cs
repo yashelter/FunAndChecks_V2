@@ -27,5 +27,7 @@ public interface IApiClient
         string description = "none");
     
     Task<CreateQueueEventDto?> CreateQueueEvent(long userId,  string name, DateTime? eventTime, int subjectId);
+    
+    Task LinkGroupToSubject(long userId, int groupId, int subjectId);
 
 }
