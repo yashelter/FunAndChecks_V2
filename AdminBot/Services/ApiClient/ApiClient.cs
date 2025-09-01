@@ -1,3 +1,4 @@
+using AdminBot.Services.StateStorage;
 using FunAndChecks.DTO;
 using FunAndChecks.Models.Enums;
 
@@ -92,11 +93,11 @@ public class ApiClient(
     public async Task CreateSubmission(long adminId, string userId, int taskId, SubmissionStatus status, string comment)
     {
         var tr = Guid.TryParse(userId, out Guid id);
-        var requestDto = new CreateSubmissionDto(id, taskId, status, comment );
+        var requestDto = new CreateSubmissionDto(id, taskId, status, comment);
         
         var result = await PostWithAuthAsync<CreateSubmissionDto>(
             adminId, 
-            "/api/admin/link/group-to-subject",
+            "/api/admin/create/submission",
             requestDto
         );
 

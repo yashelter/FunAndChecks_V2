@@ -1,6 +1,7 @@
 using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
 using AdminBot.Models;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 using FunAndChecks.Models.Enums;
 using Telegram.Bot.Types.Enums;
@@ -15,14 +16,14 @@ public class CreateSubmissionFlow: ConversationFlow
     public Func<Task>? AtEnd { get; set; }
     
     
-    public CreateSubmissionFlow()
+    public CreateSubmissionFlow(IApiClient apiClient)
     {
         var askTaskId = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
                 var state = manager.GetUserState<CreateSubmissionState>(conversation.ChatId);
-                var events = await GetAllUserTasks(state.StudentId, state.SubjectId, manager.ApiClient);
+                var events = await GetAllUserTasks(state.StudentId, state.SubjectId, apiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите задачу:", replyMarkup: events);
             },
             OnCallbackQuery = async (manager, update) =>
@@ -36,14 +37,14 @@ public class CreateSubmissionFlow: ConversationFlow
                     var events = await GetAllUserTasks(
                         state.StudentId, 
                         state.SubjectId,
-                        manager.ApiClient,
+                        apiClient,
                         page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
                 
                 await manager.NotificationService.EditMessageReplyMarkupAsync(
@@ -55,7 +56,7 @@ public class CreateSubmissionFlow: ConversationFlow
                     $"Что то выбралось: {view.CallbackParam}");
 
                 state.TaskId = int.Parse(view.CallbackParam);
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -66,7 +67,7 @@ public class CreateSubmissionFlow: ConversationFlow
             {
                 var state = manager.GetUserState<CreateSubmissionState>(conversation.ChatId);
 
-                var logs = await GetAllUserTaskLogs(conversation.UserId, state.StudentId, state.TaskId, manager.ApiClient);
+                var logs = await GetAllUserTaskLogs(conversation.UserId, state.StudentId, state.TaskId, apiClient);
                 if (logs != null)
                 {
                     foreach (var log in logs)
@@ -85,7 +86,7 @@ public class CreateSubmissionFlow: ConversationFlow
             },
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.Nothing;
                 var callbackData = update.CallbackQuery.Data;
                 
                 if (callbackData == "approve_task")
@@ -98,12 +99,12 @@ public class CreateSubmissionFlow: ConversationFlow
                         text: "Задача принята\n",
                         replyMarkup: null);
                     
-                    await manager.ApiClient.CreateSubmission(update.GetUserId(), state.StudentId, state.TaskId,  SubmissionStatus.Accepted ,"Принято");
+                    await apiClient.CreateSubmission(update.GetUserId(), state.StudentId, state.TaskId,  SubmissionStatus.Accepted ,"Принято");
                     await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), "Успешно выполнено", parseMode: ParseMode.Html);
 
                     AtEnd?.Invoke();
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
                 else if (callbackData == "reject_task")
                 {
@@ -113,9 +114,9 @@ public class CreateSubmissionFlow: ConversationFlow
                         text: "Задача отклонена\n",
                         replyMarkup: null);
                     
-                    return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = null };
+                    return StepResultState.GoToNextStep;
                 }
-                return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                return StepResultState.Nothing;
             }
         };
         
@@ -129,7 +130,7 @@ public class CreateSubmissionFlow: ConversationFlow
             },
             OnResponse = async (manager, update) =>
             {
-                if (update.Message is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.Message is null) return StepResultState.RepeatStep;
                 var message = update.GetMessageText();
                 
                 if (message == "/none")
@@ -139,24 +140,16 @@ public class CreateSubmissionFlow: ConversationFlow
                 var state = manager.GetUserState<CreateSubmissionState>(update.GetUserId());
                 state.Comment = message;
                 
-                await manager.ApiClient.CreateSubmission(update.GetUserId(), state.StudentId, state.TaskId,  SubmissionStatus.Rejected ,state.Comment);
+                await apiClient.CreateSubmission(update.GetUserId(), state.StudentId, state.TaskId,  SubmissionStatus.Rejected ,state.Comment);
                 await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), "Успешно выполнено", parseMode: ParseMode.Html);
 
                 AtEnd?.Invoke();
                 
-                return new StepResult() { State = StepResultState.FinishFlow, ResultingState = state };
+                return StepResultState.FinishFlow;
             }
         };
 
         Steps = [askTaskId, askTaskState, askTaskComment];
     }
-
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new CreateSubmissionState()
-        {
-            UserId = userId,
-            ChatId = chatId
-        };
-    }
+    
 }

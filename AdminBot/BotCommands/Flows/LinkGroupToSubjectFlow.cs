@@ -1,6 +1,7 @@
 using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
 using AdminBot.Models;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 
 namespace AdminBot.BotCommands.Flows;
@@ -9,13 +10,13 @@ using static Services.Controllers.DataGetterController;
 
 public class LinkGroupToSubjectFlow: ConversationFlow
 {
-    public LinkGroupToSubjectFlow()
+    public LinkGroupToSubjectFlow(IApiClient apiClient)
     {
         var askSubjectId = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
-                var events = await GetAllSubjects(manager.ApiClient);
+                var events = await GetAllSubjects(apiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите предмет:", replyMarkup: events);
             },
             OnCallbackQuery = async (manager, update) =>
@@ -26,14 +27,14 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                 
                 if (view.CallbackName == "page")
                 {
-                    var events = await GetAllSubjects(manager.ApiClient,
+                    var events = await GetAllSubjects(apiClient,
                         page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
                 
                 await manager.NotificationService.EditMessageReplyMarkupAsync(
@@ -46,7 +47,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
 
                 state.SubjectId = int.Parse(view.CallbackParam);
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -54,7 +55,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
         {
             OnEnter = async (manager, conversation) =>
             {
-                var events = await GetAllGroups(manager.ApiClient);
+                var events = await GetAllGroups(apiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите группу:", replyMarkup: events);
             },
             OnCallbackQuery = async (manager, update) =>
@@ -65,14 +66,14 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                 
                 if (view.CallbackName == "page")
                 {
-                    var events = await GetAllSubjects(manager.ApiClient,
+                    var events = await GetAllSubjects(apiClient,
                         page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
                 
                 await manager.NotificationService.EditMessageReplyMarkupAsync(
@@ -85,7 +86,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
 
                 state.GroupId = int.Parse(view.CallbackParam);
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -94,8 +95,8 @@ public class LinkGroupToSubjectFlow: ConversationFlow
             OnEnter = async (manager, conversation) =>
             {
                 var state = manager.GetUserState<LinkGroupToSubjectState>(conversation.UserId);
-                var subj = await manager.ApiClient.GetSubject(state.SubjectId);
-                var group = await manager.ApiClient.GetGroup(state.GroupId);
+                var subj = await apiClient.GetSubject(state.SubjectId);
+                var group = await apiClient.GetGroup(state.GroupId);
                 
                 string subjName = subj?.Name switch
                 {
@@ -121,14 +122,14 @@ public class LinkGroupToSubjectFlow: ConversationFlow
             
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.RepeatStep;
                 var callbackData = update.CallbackQuery.Data;
                 
                 if (callbackData == "confirm_create_link_gt")
                 {
                     var state = manager.GetUserState<LinkGroupToSubjectState>(update.GetUserId());
 
-                    await manager.ApiClient.LinkGroupToSubject(update.GetUserId(), groupId: state.GroupId,
+                    await apiClient.LinkGroupToSubject(update.GetUserId(), groupId: state.GroupId,
                         subjectId: state.SubjectId);
                     
                     await manager.NotificationService.EditMessageTextAsync(
@@ -137,7 +138,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                         text: "Связь успешно создана\n" +
                               $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
                 else if (callbackData == "cancel_create_link_gt")
                 {
@@ -147,22 +148,12 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                         text: "Создание связи отменено\n" +
                               $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
-                return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                return StepResultState.RepeatStep;
             }
         };
 
         Steps = [askSubjectId, askGroupId, confirmStep];
-    }
-    
-    
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new LinkGroupToSubjectState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
     }
 }

@@ -13,13 +13,13 @@ using static Services.Controllers.DataGetterController;
 public class GetAllQueuesFlow: ConversationFlow
 {
 
-    public GetAllQueuesFlow(IQueueManager queueManager, IQueueController queueController)
+    public GetAllQueuesFlow(IApiClient apiClient, IQueueManager queueManager, IQueueController queueController)
     {
         var askNameStep = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
-                var events = await GetAllQueueEvents(manager.ApiClient);
+                var events = await GetAllQueueEvents(apiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите событие:",
                     replyMarkup: events);
             },
@@ -29,13 +29,13 @@ public class GetAllQueuesFlow: ConversationFlow
                 
                 if (view.CallbackName == "page")
                 {
-                    var events = await GetAllQueueEvents(manager.ApiClient, page: int.Parse(view.ExtraParam!));
+                    var events = await GetAllQueueEvents(apiClient, page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
 
                 int queueId = int.Parse(view.CallbackParam);
@@ -49,21 +49,10 @@ public class GetAllQueuesFlow: ConversationFlow
                     $"Выбрана очередь: {res.EventName}",
                     replyMarkup: null);
                 
-                return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                return StepResultState.FinishFlow;
             }
         };
         
         Steps = [askNameStep];
-    }
-    
-    
-    
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new ConversationState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
     }
 }

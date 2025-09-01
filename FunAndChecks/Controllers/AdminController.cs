@@ -321,18 +321,22 @@ public class AdminController(
     }
     
     [HttpGet("get/user/{userId}/task-logs/{taskId}")]
-    public async Task<ActionResult<TaskLog>> GetTaskLog(string userId, int taskId)
+    public async Task<ActionResult<TaskLog>> GetTaskLog(Guid userId, int taskId)
     {
         var res = await context.UserTaskSubmissions
-            .Where(ts => ts.TaskId == taskId && ts.UserId.ToString() == userId)
-            .Select(ts => new TaskLog(ts.Status, ts.Comment, 
-                context.Users.Where(u => u.Id == ts.UserId)
-                    .Select(u => new UserDto(u.Id,
-                        u.FirstName,
-                        u.LastName,
-                        u.Color)).FirstOrDefault()
-                , ts.SubmissionDate))
-            .OrderBy(tl => tl.SubmissionDate)
+            .Where(ts => ts.TaskId == taskId && ts.UserId == userId)
+            .OrderBy(ts => ts.SubmissionDate)
+            .Select(ts => new TaskLog(
+                ts.Status, 
+                ts.Comment, 
+                new UserDto(
+                    ts.Admin.Id,
+                    ts.Admin.FirstName,
+                    ts.Admin.LastName,
+                    ts.Admin.Color
+                ),
+                ts.SubmissionDate
+            ))
             .ToListAsync();
             
         if (res.Count < 1)

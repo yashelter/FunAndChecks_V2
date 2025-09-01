@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AdminBot.Models;
@@ -30,7 +31,7 @@ public class ApiRequestsWrapper(
 
             if (tokenSession?.JwtToken == null)
             {
-                throw new InvalidOperationException($"User {userId} is not logged in.");
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenSession.JwtToken);
@@ -82,7 +83,7 @@ public class ApiRequestsWrapper(
                 var newToken = await TelegramLoginAsync(userId);
                 if (newToken == null)
                 {
-                    throw new InvalidOperationException($"User {userId} is not logged in.");
+                    return new HttpResponseMessage(HttpStatusCode.Unauthorized);
                 }
                 tokenFolder.SaveUserTokenSession(new UserSession { UserId = userId, JwtToken = newToken });
             }
@@ -133,7 +134,7 @@ public class ApiRequestsWrapper(
             var session = tokenFolder.GetUserTokenSession(userId);
             if (session?.JwtToken == null)
             {
-                throw new InvalidOperationException("User is not logged in.");
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.JwtToken);

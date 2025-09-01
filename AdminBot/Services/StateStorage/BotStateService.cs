@@ -1,7 +1,7 @@
 using AdminBot.Models;
 using LiteDB;
 
-namespace AdminBot.Services;
+namespace AdminBot.Services.StateStorage;
 
 
 public sealed class BotStateService : ITokenService, IDisposable
@@ -14,7 +14,6 @@ public sealed class BotStateService : ITokenService, IDisposable
         _db = new LiteDatabase("database.db");
     }
 
-    private ILiteCollection<ConversationSession> Sessions => _db.GetCollection<ConversationSession>("conversation_sessions");
     private ILiteCollection<UserSession> UserSessions => _db.GetCollection<UserSession>("user_sessions");
 
 
@@ -24,20 +23,6 @@ public sealed class BotStateService : ITokenService, IDisposable
     
     public void DeleteUserTokenSession(long userId) => UserSessions.Delete(userId);
     
-    public void SaveSession(ConversationSession session)
-    {
-        Sessions.Upsert(session);
-    }
-
-    public ConversationSession? GetSession(long userId)
-    {
-        return Sessions.FindById(userId);
-    }
-
-    public void DeleteSession(long userId)
-    {
-        Sessions.Delete(userId);
-    }
 
     void IDisposable.Dispose()
     {

@@ -1,17 +1,23 @@
 using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 using Telegram.Bot.Types;
 
 namespace AdminBot.BotCommands.Commands.CreateCommands;
 
-public class CreateSubjectCommand(IConversationManager conversationManager) : IBotCommand
+public class CreateSubjectCommand(IConversationManager conversationManager, IApiClient apiClient) : IBotCommand
 {
     public string Name => "/create_new_subject";
 
     public async Task ExecuteAsync(Update update)
     {
-        var createSubjectFlow = new CreateSubjectFlow();
-        await conversationManager.StartFlowAsync(createSubjectFlow, update.GetChatId(), update.GetUserId());
+        var flow = new CreateSubjectFlow(apiClient);
+        await conversationManager.StartFlowAsync(flow, new CreateSubjectState()
+        {
+            ChatId = update.GetChatId(),
+            UserId = update.GetUserId()
+        });
     }
 }

@@ -79,7 +79,7 @@ public class QueueController(
 
         var sub = await queueManager.GetSubscription(update.GetUserId(), eventId);
         
-        var flow = new CreateSubmissionFlow();
+        var flow = new CreateSubmissionFlow(apiClient);
         CreateSubmissionState state =  new CreateSubmissionState()
         {
             StudentId = participantId,
@@ -100,7 +100,7 @@ public class QueueController(
                 replyMarkup: null);
         };
         
-        await conversationManager.StartFlowAsync(flow, update.GetChatId(), update.GetUserId(), state);
+        await conversationManager.StartFlowAsync(flow, state);
     }
     
     

@@ -5,13 +5,13 @@ namespace AdminBot.Conversations;
 
 public interface IConversationManager
 {
-    Task StartFlowAsync(ConversationFlow flow, long chatId, long userId,  ConversationState? initialState = null);
+    Task StartFlowAsync(ConversationFlow flow, ConversationState initialState);
     
     Task ProcessResponseAsync(Update update);
     
     Task<bool> IsUserInConversationAsync(long userId);
-    T GetUserState<T>(long userId) where T : ConversationState, new();
+    
+    T GetUserState<T>(long userId) where T : ConversationState;
     
     INotificationService NotificationService { get; }
-    IApiClient ApiClient { get; }
 }

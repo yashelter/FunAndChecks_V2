@@ -8,8 +8,8 @@ public class FlowStep
     public Func<IConversationManager, ConversationState, Task>? OnEnter { get; set; }
     
     // Вызывается, если пришел текстовый ответ
-    public Func<IConversationManager, Update, Task<StepResult>>? OnResponse { get; set; }
+    public Func<IConversationManager, Update, Task<StepResultState>>? OnResponse { get; set; }
     
     // Вызывается, если пришел ответ с кнопки
-    public Func<IConversationManager, Update, Task<StepResult>>? OnCallbackQuery { get; set; }
+    public Func<IConversationManager, Update, Task<StepResultState>>? OnCallbackQuery { get; set; }
 }

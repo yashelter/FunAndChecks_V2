@@ -8,13 +8,22 @@ using Telegram.Bot.Types;
 
 namespace AdminBot.BotCommands.Commands.QueueCommands;
 
-public class GetAllQueuesCommand(IConversationManager conversationManager, IQueueManager queueManager, IQueueController queueController) : IBotCommand
+public class GetAllQueuesCommand(
+    IConversationManager conversationManager,
+    IQueueManager queueManager,
+    IQueueController queueController,
+    IApiClient apiClient) : IBotCommand
 {
     public string Name { get; } = "/get_all_queues";
     
     public async Task ExecuteAsync(Update update)
     {
-        var flow = new GetAllQueuesFlow(queueManager,  queueController);
-        await conversationManager.StartFlowAsync(flow, update.GetChatId(), update.GetUserId());
+        var flow = new GetAllQueuesFlow(apiClient, queueManager, queueController);
+        await conversationManager.StartFlowAsync(flow, new ConversationState()
+        {
+            ChatId = update.GetChatId(),
+            UserId = update.GetUserId()
+        });
+        
     }
 }

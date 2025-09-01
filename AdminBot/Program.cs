@@ -9,6 +9,7 @@ using AdminBot.Services;
 using AdminBot.Services.ApiClient;
 using AdminBot.Services.Controllers;
 using AdminBot.Services.QueueManager;
+using AdminBot.Services.StateStorage;
 using Serilog;
 using Telegram.Bot;
 
@@ -46,6 +47,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         
         services.AddSingleton<BotStateService>();
         services.AddSingleton<UpdateHandler>();
+        services.AddSingleton<IConversationStore, InMemoryConversationStore>(); 
         
         services.AddScoped<IApiClient, ApiClient>();
         services.AddScoped<CommandRouter>();

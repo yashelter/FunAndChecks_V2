@@ -1,6 +1,7 @@
 using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
 using AdminBot.Models;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 
 namespace AdminBot.BotCommands.Flows;
@@ -10,13 +11,13 @@ using static Services.Controllers.DataGetterController;
 
 public class CreateTaskFlow: ConversationFlow
 {
-    public CreateTaskFlow()
+    public CreateTaskFlow(IApiClient apiClient)
     {
         var askSubjectId = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
-                var events = await GetAllSubjects(manager.ApiClient);
+                var events = await GetAllSubjects(apiClient);
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Выберите предмет:", replyMarkup: events);
             },
             OnCallbackQuery = async (manager, update) =>
@@ -27,14 +28,14 @@ public class CreateTaskFlow: ConversationFlow
                 
                 if (view.CallbackName == "page")
                 {
-                    var events = await GetAllSubjects(manager.ApiClient,
+                    var events = await GetAllSubjects(apiClient,
                         page: int.Parse(view.ExtraParam!));
                     
                     await manager.NotificationService.EditMessageReplyMarkupAsync(
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
                 
                 await manager.NotificationService.EditMessageReplyMarkupAsync(
@@ -44,7 +45,7 @@ public class CreateTaskFlow: ConversationFlow
                 
                 state.SubjectId = int.Parse(view.CallbackParam);
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -61,7 +62,7 @@ public class CreateTaskFlow: ConversationFlow
             {
                 var state = manager.GetUserState<CreateTaskState>(update.GetChatId());
                 state.Name = update.GetMessageText();
-                return Task.FromResult(new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state });
+                return Task.FromResult(StepResultState.GoToNextStep);
             }
         };
         
@@ -87,7 +88,7 @@ public class CreateTaskFlow: ConversationFlow
                 
                 state.MaxPoints = maxPoints;
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         var confirmStep = new FlowStep()
@@ -95,7 +96,7 @@ public class CreateTaskFlow: ConversationFlow
             OnEnter = async (manager, conversation) =>
             {
                 var state = manager.GetUserState<CreateTaskState>(conversation.UserId);
-                var subj = await manager.ApiClient.GetSubject(state.SubjectId);
+                var subj = await apiClient.GetSubject(state.SubjectId);
                 
                 string displayName = subj?.Name switch
                 {
@@ -116,14 +117,14 @@ public class CreateTaskFlow: ConversationFlow
             
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.RepeatStep;
                 var callbackData = update.CallbackQuery.Data;
                 
                 if (callbackData == "confirm_create_task")
                 {
-                    var state = manager.GetUserState<CreateTaskState>(update.CallbackQuery.From.Id);
+                    var state = manager.GetUserState<CreateTaskState>(update.GetUserId());
                     
-                    await manager.ApiClient.CreateNewTask(
+                    await apiClient.CreateNewTask(
                         update.GetUserId(), 
                         state.SubjectId, 
                         state.Name ?? throw new InvalidOperationException("Некое поле null"), 
@@ -136,7 +137,7 @@ public class CreateTaskFlow: ConversationFlow
                         text: "Событие успешно создано\n" +
                               $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
                 else if (callbackData == "cancel_create_task")
                 {
@@ -146,21 +147,12 @@ public class CreateTaskFlow: ConversationFlow
                         text: "Создание события отменено\n" +
                               $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
-                return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                return StepResultState.RepeatStep;
             }
         };
 
         Steps = [askSubjectId, askNameStep, askMaxPoints, confirmStep];
-    }
-    
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new CreateTaskState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
     }
 }
