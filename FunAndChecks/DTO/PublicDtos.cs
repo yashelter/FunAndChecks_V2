@@ -37,10 +37,30 @@ public record SubjectDto(int Id, string Name);
 public record TaskDto(int Id, string Name, string Description, int Points);
 public record TaskUserDto(int Id, string Name, string Description, int Points, SubmissionStatus Status);
 public record TaskHeaderDto(int TaskId, string TaskName);
-public record UserResultDto(Guid UserId, string FullName, string GroupName, Dictionary<int, string> Results); // Словарь [TaskId, Status]
 public record SubjectResultsDto(long SubjectId, string SubjectName, List<TaskHeaderDto> TaskHeaders, List<UserResultDto> UserResults);
 
 public record QueueEventDto(int Id, string Name, DateTime EventDateTime);
 
 public record UserDto(Guid Id, string Name, string LastName, string? Color);
 
+
+/// <summary>
+/// Представляет одну ячейку в таблице результатов.
+/// </summary>
+public record ResultCellDto(
+    string DisplayValue, // Что будет написано в ячейке ("+", "A", "Б", "")
+    string? AdminColor,  // Цвет фона ячейки (например, "#FF5733")
+    SubmissionStatus Status
+);
+
+// Обновляем UserResultDto, чтобы он использовал новый DTO для ячеек.
+// Словарь теперь будет [TaskId, ResultCellDto].
+public record UserResultDto(
+    Guid UserId,
+    string FullName,
+    string GroupName,
+    int TotalPoints,
+    // Словарь [TaskId, Status]
+    Dictionary<int, ResultCellDto> Results
+
+);

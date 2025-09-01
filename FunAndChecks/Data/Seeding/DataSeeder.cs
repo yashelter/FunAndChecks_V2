@@ -70,6 +70,7 @@ namespace FunAndChecks.Data.Seeding
                     UserName = adminModel.TgUsername ,
                     TelegramUserId = adminModel.TgId,
                     Color = adminModel.Color,
+                    Letter = adminModel.Letter,
                     
                     EmailConfirmed = true,
                     GroupId = null,

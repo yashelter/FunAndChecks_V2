@@ -99,14 +99,11 @@ public class SignalRService : IQueueManager, IHostedService
         {
             subscribersForEvent.TryRemove(userId, out _);
 
-            if (subscribersForEvent.IsEmpty)
+            if (subscribersForEvent.IsEmpty && _connection.State == HubConnectionState.Connected)
             {
-                if (_connection.State == HubConnectionState.Connected)
-                {
-                    await _connection.InvokeAsync("UnsubscribeFromQueue", eventId);
-                    _logger.LogInformation("Bot unsubscribed from queue {EventId} as there are no more subscribers.",
-                        eventId);
-                }
+                await _connection.InvokeAsync("UnsubscribeFromQueue", eventId);
+                _logger.LogInformation("Bot unsubscribed from queue {EventId} as there are no more subscribers.",
+                    eventId);
             }
         }
     }

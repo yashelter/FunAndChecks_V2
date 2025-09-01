@@ -9,4 +9,5 @@ public class AdminSeedModel
     public long TgId { get; set; }
     public string TgUsername {get; set;}
     public string Color { get; set; }
+    public string Letter { get; set; }
 }

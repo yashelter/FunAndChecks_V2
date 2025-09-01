@@ -126,23 +126,8 @@ public class AdminController(
         
         return CreatedAtAction(nameof(CreateQueueEvent), new { id = newEvent.Id }, newEvent);
     }
-
-
-    [HttpPost("queue/{eventId}/start-check/{userId}")]
-    public async Task<IActionResult> StartCheckingUser(int eventId, Guid userId)
-    {
-        var queueUser = await context.QueueUsers
-            .FirstOrDefaultAsync(qu => qu.QueueEventId == eventId && qu.UserId == userId);
-
-        if (queueUser == null) return NotFound("User not found in this queue.");
-
-        var adminId = GetCurrentAdminId();
-        queueUser.Status = QueueUserStatus.Checking;
-        queueUser.CurrentAdminId = adminId;
-
-        await context.SaveChangesAsync();
-        return Ok();
-    }
+    
+    
 
     /// <summary>
     /// Предоставляет группе доступ к предмету.
