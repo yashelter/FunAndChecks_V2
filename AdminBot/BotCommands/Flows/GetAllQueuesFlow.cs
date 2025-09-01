@@ -13,7 +13,7 @@ using static Services.Controllers.DataGetterController;
 public class GetAllQueuesFlow: ConversationFlow
 {
 
-    public GetAllQueuesFlow(IApiClient apiClient, IQueueManager queueManager, IQueueController queueController)
+    public GetAllQueuesFlow(IApiClient apiClient, IQueueController queueController)
     {
         var askNameStep = new FlowStep()
         {
@@ -40,8 +40,7 @@ public class GetAllQueuesFlow: ConversationFlow
 
                 int queueId = int.Parse(view.CallbackParam);
 
-                var subs = await queueController.SubscribeToQueueEvent(update.GetUserId(), queueId);
-                var res = await queueManager.SubscribeUserToQueue(subs);
+                var res = await queueController.SubscribeToQueueEvent(update.GetUserId(), queueId);
                 
                 await manager.NotificationService.EditMessageTextAsync(
                     update.GetChatId(), 

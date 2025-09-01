@@ -23,9 +23,12 @@ public interface IQueueController
     /// <returns></returns>
     Task UpdateQueueStatus(QueueSubscription subscription, QueueUserUpdateDto update);
     
-
+    Task<bool> IsUserSubscribed(long userId);
+    
+    
     Task HandleQueueCallbackAction(Update update);
-
-    Task HandleNewQueueSubscription(long userId, int queueId);
-
+    
+    // Есть случай что повторно запрашиваются очереди, тогда отменим подписку и дадим подписаться на другое
+    // В других случаях просто отправим новое сообщение очереди
+    Task UnsubscribeUser(long userId);
 }

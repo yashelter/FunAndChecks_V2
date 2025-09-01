@@ -10,7 +10,6 @@ namespace AdminBot.BotCommands.Commands.QueueCommands;
 
 public class GetAllQueuesCommand(
     IConversationManager conversationManager,
-    IQueueManager queueManager,
     IQueueController queueController,
     IApiClient apiClient) : IBotCommand
 {
@@ -18,7 +17,7 @@ public class GetAllQueuesCommand(
     
     public async Task ExecuteAsync(Update update)
     {
-        var flow = new GetAllQueuesFlow(apiClient, queueManager, queueController);
+        var flow = new GetAllQueuesFlow(apiClient, queueController);
         await conversationManager.StartFlowAsync(flow, new ConversationState()
         {
             ChatId = update.GetChatId(),

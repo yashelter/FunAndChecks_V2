@@ -22,7 +22,7 @@ public class QueueController(
     ILogger<QueueController> logger,
     IApiClient apiClient,
     IConversationManager conversationManager,
-    IQueueManager queueManager
+    IQueueNotifier queueNotifier
     )
     : IQueueController
 {
@@ -43,7 +43,7 @@ public class QueueController(
                 $"queue_{eventId}")
         );
 
-        return new QueueSubscription()
+        var sub =  new QueueSubscription()
         {
             EventId = eventId,
             MessageId = message.MessageId,
@@ -51,6 +51,8 @@ public class QueueController(
             EventName = $"{queue.EventDateTime.ToShortDateString()} -- {queue.EventName}",
             SubjectId = queue.SubjectId
         };
+        
+       return await queueNotifier.SubscribeUserToQueue(sub);
     }
     
 
@@ -59,11 +61,13 @@ public class QueueController(
         throw new NotImplementedException();
     }
 
-    
+    public async Task<bool> IsUserSubscribed(long userId) => await queueNotifier.IsUserSubscribed(userId);
+
     public async Task HandleQueueCallbackAction(Update update)
     {
-        if (update.Type != UpdateType.CallbackQuery || update.CallbackQuery is null) throw new ArgumentException(nameof(update));
+        if (update.CallbackQuery is null) throw new ArgumentException(null, nameof(update));
         var callback = update.GetCallbackText();
+        
         // Формат: queue_2:01990041-ad21-792d-a63d-1d6c86063b19
         logger.LogInformation("Got {CallbackQueryMessage} in queue Handler", update.CallbackQuery.Message);
 
@@ -77,7 +81,7 @@ public class QueueController(
         int eventId = data.Value.EventId;
         string participantId = data.Value.ParticipantId;
 
-        var sub = await queueManager.GetSubscription(update.GetUserId(), eventId);
+        var sub = await queueNotifier.GetSubscription(update.GetUserId(), eventId);
         
         var flow = new CreateSubmissionFlow(apiClient);
         CreateSubmissionState state =  new CreateSubmissionState()
@@ -91,7 +95,7 @@ public class QueueController(
         flow.AtEnd = async () =>
         {
             var subs = await SubscribeToQueueEvent(update.GetUserId(), eventId);
-            var res = await queueManager.SubscribeUserToQueue(subs);
+            var res = await queueNotifier.SubscribeUserToQueue(subs);
                 
             await bot.EditMessageTextAsync(
                 update.GetChatId(), 
@@ -102,13 +106,13 @@ public class QueueController(
         
         await conversationManager.StartFlowAsync(flow, state);
     }
-    
-    
-    public async Task HandleNewQueueSubscription(long userId, int queueId)
+
+    public async Task UnsubscribeUser(long userId)
     {
-      //  bot.SendTextMessageAsync(userId, "")
+        throw new NotImplementedException();
     }
-    
+
+
     private async Task<InlineKeyboardMarkup> RenderQueue(List<QueueParticipantDetailDto> queue, int page, string callback)
     {
         KeyboardGenerator.KeyboardSettings qSettings = new() { LineSize = 1,PageNumber = page} ;
@@ -135,7 +139,7 @@ public class QueueController(
         
         return wrapped;
     }
-
+    
     
     private static string GetQueueStatusEmote(QueueUserStatus status) => status switch
     {

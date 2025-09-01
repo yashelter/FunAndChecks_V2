@@ -42,7 +42,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ITokenService, BotStateService>();
         services.AddSingleton<SignalRService>();
-        services.AddSingleton<IQueueManager>(provider => provider.GetRequiredService<SignalRService>());
+        services.AddSingleton<IQueueNotifier>(provider => provider.GetRequiredService<SignalRService>());
         services.AddHostedService(provider => provider.GetRequiredService<SignalRService>());
         
         services.AddSingleton<BotStateService>();
