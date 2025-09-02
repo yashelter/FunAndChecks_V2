@@ -10,49 +10,31 @@ namespace AdminBot.Services.QueueManager;
 public interface IQueueNotifier
 {
     /// <summary>
-    /// Событие, которое вызывается при изменении очереди
+    /// Событие, которое вызывается при изменении очереди, на которую подписан пользователь.
     /// </summary>
-    public event Func<QueueSubscription, QueueUserUpdateDto, Task>? OnUpdate;
+    event Func<QueueSubscription, QueueUserUpdateDto, Task>? OnUpdate;
     
     /// <summary>
-    /// Выполняет подписку пользователя на обновления.
-    /// При обновлении вызывает событие <see cref="OnUpdate"/>
+    /// Подписывает пользователя на обновления ОДНОЙ очереди.
+    /// Если пользователь уже был подписан на другую очередь, старая подписка автоматически отменяется.
     /// </summary>
-    /// <param name="newSubscription"></param>
-    /// <returns></returns>
+    /// <param name="newSubscription">Информация о новой подписке.</param>
+    /// <returns>Объект созданной или обновленной подписки.</returns>
     Task<QueueSubscription> SubscribeUserToQueue(QueueSubscription newSubscription);
     
     /// <summary>
-    /// Выполняет отмену подписки пользователя на обновления всех событий
+    /// Отменяет текущую активную подписку пользователя.
     /// </summary>
-    /// <param name="userId">ID пользователя в Telegram</param>
-    /// <returns></returns>
+    /// <param name="userId">ID пользователя в Telegram.</param>
     Task UnsubscribeUserFromQueue(long userId);
-
-    /// <summary>
-    /// Выполняет отмену подписки пользователя на обновления одного события
-    /// </summary>
-    /// <param name="userId">ID пользователя в Telegram</param>
-    /// <param name="eventId">ID события очереди</param>
-    /// <returns></returns>
-    Task UnsubscribeUserFromQueue(long userId, int eventId);
-    
     
     /// <summary>
-    /// Проверяет подписан ли пользователь на обновления очереди
+    /// Находит и возвращает активную подписку пользователя.
     /// </summary>
-    /// <param name="userId">ID пользователя в Telegram</param>
-    /// <returns></returns>
-    Task<bool> IsUserSubscribed(long userId);
-    
-    /// <summary>
-    /// Находит и возвращает активную подписку пользователя на конкретное событие очереди.
-    /// </summary>
-    /// <param name="userId">ID пользователя Telegram</param>
-    /// <param name="eventId">ID события очереди</param>
+    /// <param name="userId">ID пользователя Telegram.</param>
     /// <returns>
     /// Объект QueueSubscription, если подписка найдена.
-    /// Null, если пользователь не подписан на это событие.
+    /// Null, если пользователь ни на что не подписан.
     /// </returns>
-    Task<QueueSubscription?> GetSubscription(long userId, int eventId);
+    Task<QueueSubscription?> GetSubscription(long userId);
 }

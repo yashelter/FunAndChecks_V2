@@ -12,6 +12,7 @@ namespace AdminBot.Services.QueueManager;
 /// Не должен (согласно задуманному дизайну) использоваться нигде, кроме <see cref="IQueueController"/>
 /// Является Singleton
 /// </summary>
+///
 public class SignalRService : IQueueNotifier, IHostedService
 {
     public event Func<QueueSubscription, QueueUserUpdateDto, Task>? OnUpdate;
@@ -19,13 +20,13 @@ public class SignalRService : IQueueNotifier, IHostedService
     private readonly ILogger<SignalRService> _logger;
     private readonly HubConnection _connection;
 
-    private readonly ConcurrentDictionary<int, ConcurrentDictionary<long, QueueSubscription>> _subscriptions = new();
-
-    public SignalRService(IConfiguration configuration,
-        ILogger<SignalRService> logger)
+    private readonly ConcurrentDictionary<long, QueueSubscription> _userSubscriptions = new();
+    private readonly ConcurrentDictionary<int, int> _eventSubscriberCount = new();
+    
+    
+    public SignalRService(IConfiguration configuration, ILogger<SignalRService> logger)
     {
         _logger = logger;
-
         var hubUrl = configuration["ApiConfiguration:BaseUrl"]?.TrimEnd('/') + "/queueHub";
 
         _connection = new HubConnectionBuilder()
@@ -34,8 +35,84 @@ public class SignalRService : IQueueNotifier, IHostedService
             .Build();
         _connection.On<QueueUserUpdateDto>("QueueUserUpdated", HandleQueueUserUpdate);
     }
+    
 
+    public async Task<QueueSubscription> SubscribeUserToQueue(QueueSubscription newSubscription)
+    {
+        if (_userSubscriptions.TryGetValue(newSubscription.UserId, out var oldSubscription))
+        {
+            if (oldSubscription.EventId == newSubscription.EventId)
+            {
+                oldSubscription.MessageId = newSubscription.MessageId;
+                _userSubscriptions[newSubscription.UserId] = oldSubscription;
+                return oldSubscription;
+            }
+            
+            await UnsubscribeUserFromQueue(newSubscription.UserId);
+        }
 
+        _userSubscriptions[newSubscription.UserId] = newSubscription;
+        int newCount = _eventSubscriberCount.AddOrUpdate(newSubscription.EventId, 1, (_, count) => count + 1);
+
+        if (newCount == 1 && _connection.State == HubConnectionState.Connected)
+        {
+            await _connection.InvokeAsync("SubscribeToQueue", newSubscription.EventId);
+            _logger.LogInformation("Bot subscribed to queue {EventId} (first listener).", newSubscription.EventId);
+        }
+
+        _logger.LogInformation("User {UserId} subscribed to queue {EventId}.", newSubscription.UserId, newSubscription.EventId);
+        return newSubscription;
+    }
+
+    public async Task UnsubscribeUserFromQueue(long userId)
+    {
+        // 1. Пытаемся удалить подписку пользователя.
+        if (_userSubscriptions.TryRemove(userId, out var removedSubscription))
+        {
+            _logger.LogInformation("User {UserId} unsubscribed from queue {EventId}.", userId, removedSubscription.EventId);
+            
+            // 2. Уменьшаем счетчик подписчиков для этой очереди.
+            int newCount = _eventSubscriberCount.AddOrUpdate(removedSubscription.EventId, 0, (_, count) => count - 1);
+
+            // 3. Если это был последний подписчик, отписываемся на сервере.
+            if (newCount <= 0)
+            {
+                if (_connection.State == HubConnectionState.Connected)
+                {
+                    await _connection.InvokeAsync("UnsubscribeFromQueue", removedSubscription.EventId);
+                    _logger.LogInformation("Bot unsubscribed from queue {EventId} (last listener).", removedSubscription.EventId);
+                }
+                // Можно также удалить ключ из словаря счетчиков для очистки
+                _eventSubscriberCount.TryRemove(removedSubscription.EventId, out _);
+            }
+        }
+    }
+
+    private Task HandleQueueUserUpdate(QueueUserUpdateDto update)
+    {
+        if (OnUpdate == null)
+        {
+            _logger.LogWarning("OnUpdate event has no subscribers. Queue update will be ignored.");
+            return Task.CompletedTask;
+        }
+        
+        foreach (var userSubscription in _userSubscriptions.Values)
+        {
+            if (userSubscription.EventId == update.EventId)
+            {
+                _ = OnUpdate.Invoke(userSubscription, update);
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public Task<QueueSubscription?> GetSubscription(long userId)
+    {
+        _userSubscriptions.TryGetValue(userId, out var subscription);
+        return Task.FromResult(subscription);
+    }
+    
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         try
@@ -54,131 +131,5 @@ public class SignalRService : IQueueNotifier, IHostedService
     {
         _logger.LogInformation("SignalR connection stopping.");
         return _connection.DisposeAsync().AsTask();
-    }
-
-    
-    public async Task UnsubscribeUserFromQueue(long userId, int eventId)
-    {
-        if (_subscriptions.TryGetValue(eventId, out var subscribersForEvent) 
-            && subscribersForEvent.TryRemove(userId, out _))
-        {
-            _logger.LogInformation("User {UserId} unsubscribed from queue {EventId}.", userId, eventId);
-            
-            if (subscribersForEvent.IsEmpty && _connection.State == HubConnectionState.Connected)
-            {
-                await _connection.InvokeAsync("UnsubscribeFromQueue", eventId);
-                _logger.LogInformation("Bot unsubscribed from queue {EventId} on server.", eventId);
-            }
-        }
-    }
-    
-    
-    public async Task<QueueSubscription> SubscribeUserToQueue(QueueSubscription newSubscription)
-    {
-        var subscribersForEvent = _subscriptions.GetOrAdd(newSubscription.EventId,
-            _ => new ConcurrentDictionary<long, QueueSubscription>());
-        
-        var addedOrUpdatedSubscription = subscribersForEvent.AddOrUpdate(
-            key: newSubscription.UserId,
-            addValue: newSubscription,
-            updateValueFactory: (_, existingSubscription) =>
-            {
-                existingSubscription.MessageId = newSubscription.MessageId;
-                existingSubscription.EventName = newSubscription.EventName;
-                return existingSubscription;
-            }
-        );
-
-
-        if (subscribersForEvent.Count != 1 || !subscribersForEvent.ContainsKey(newSubscription.UserId))
-            return addedOrUpdatedSubscription;
-
-        await _connection.InvokeAsync("SubscribeToQueue", newSubscription.EventId);
-        
-        _logger.LogInformation(
-            "Bot subscribed to queue {EventId} on behalf of the first user {UserId}",
-            newSubscription.EventId,
-            newSubscription.UserId);
-
-        return addedOrUpdatedSubscription;
-    }
-
-    public async Task UnsubscribeUserFromQueue(long userId)
-    {
-        var eventsToCheckForCleanup = new List<int>();
-
-        foreach (var eventId in _subscriptions.Keys)
-        {
-            if (!_subscriptions.TryGetValue(eventId, out var subscribersForEvent) ||
-                !subscribersForEvent.TryRemove(userId, out _)) continue;
-            
-            _logger.LogInformation("User {UserId} unsubscribed from queue {EventId}.", userId, eventId);
-                    
-            if (subscribersForEvent.IsEmpty)
-            {
-                eventsToCheckForCleanup.Add(eventId);
-            }
-        }
-
-        if (eventsToCheckForCleanup.Count != 0 && _connection.State == HubConnectionState.Connected)
-        {
-            foreach (var eventId in eventsToCheckForCleanup)
-            {
-                try
-                {
-                    await _connection.InvokeAsync("UnsubscribeFromQueue", eventId);
-                    _logger.LogInformation("Bot unsubscribed from queue {EventId} on server as there are no more listeners.", eventId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to unsubscribe from queue {EventId} on server.", eventId);
-                }
-            }
-        }
-    }
-
-
-    private async Task HandleQueueUserUpdate(QueueUserUpdateDto update)
-    {
-        _logger.LogInformation("Received queue update for UserId: {UserId}, NewStatus: {NewStatus}", update.UserId,
-            update.NewStatus);
-
-        if (_subscriptions.TryGetValue(update.EventId, out var subscribers))
-        {
-            foreach (var sub in subscribers)
-            {
-                if (OnUpdate == null)
-                {
-                    _logger.LogWarning("Not set up any OnUpdate Handlers, Queue will don't update it.");
-                    return;
-                }
-                foreach (var handler in
-                         OnUpdate.GetInvocationList().Cast<Func<QueueSubscription, QueueUserUpdateDto, Task>>())
-                {
-                    await handler(sub.Value, update);
-                }
-            }
-        }
-    }
-
-
-    public Task<bool> IsUserSubscribed(long userId)
-    {
-        var listeningAnyQueue =
-            _subscriptions.Any(kp =>
-                kp.Value.Any(s => s.Value.UserId == userId));
-
-        return Task.FromResult(listeningAnyQueue);
-    }
-    
-
-    public Task<QueueSubscription?> GetSubscription(long userId, int eventId)
-    {
-        if (_subscriptions.TryGetValue(eventId, out var subscribersForEvent) 
-            && subscribersForEvent.TryGetValue(userId, out var subscription))
-        {
-            return Task.FromResult<QueueSubscription?>(subscription);
-        }
-        return Task.FromResult<QueueSubscription?>(null);
     }
 }
