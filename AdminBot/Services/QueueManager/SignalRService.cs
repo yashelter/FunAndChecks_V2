@@ -66,15 +66,12 @@ public class SignalRService : IQueueNotifier, IHostedService
 
     public async Task UnsubscribeUserFromQueue(long userId)
     {
-        // 1. Пытаемся удалить подписку пользователя.
         if (_userSubscriptions.TryRemove(userId, out var removedSubscription))
         {
             _logger.LogInformation("User {UserId} unsubscribed from queue {EventId}.", userId, removedSubscription.EventId);
             
-            // 2. Уменьшаем счетчик подписчиков для этой очереди.
             int newCount = _eventSubscriberCount.AddOrUpdate(removedSubscription.EventId, 0, (_, count) => count - 1);
 
-            // 3. Если это был последний подписчик, отписываемся на сервере.
             if (newCount <= 0)
             {
                 if (_connection.State == HubConnectionState.Connected)
@@ -82,12 +79,17 @@ public class SignalRService : IQueueNotifier, IHostedService
                     await _connection.InvokeAsync("UnsubscribeFromQueue", removedSubscription.EventId);
                     _logger.LogInformation("Bot unsubscribed from queue {EventId} (last listener).", removedSubscription.EventId);
                 }
-                // Можно также удалить ключ из словаря счетчиков для очистки
                 _eventSubscriberCount.TryRemove(removedSubscription.EventId, out _);
             }
         }
     }
 
+    public Task<bool> IsUserSubscribed(long userId)
+    {
+        var t = _userSubscriptions.TryGetValue(userId, out _);
+        return Task.FromResult(t);
+    }
+    
     private Task HandleQueueUserUpdate(QueueUserUpdateDto update)
     {
         if (OnUpdate == null)

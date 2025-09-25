@@ -31,4 +31,6 @@ public interface IQueueController
     // Есть случай что повторно запрашиваются очереди, тогда отменим подписку и дадим подписаться на другое
     // В других случаях просто отправим новое сообщение очереди
     Task UnsubscribeUser(long userId);
+    
+    Task ResetUserState(long userId);
 }

@@ -4,7 +4,7 @@ namespace AdminBot.Models;
 public class QueueSubscription
 {
     public long UserId { get; set; }
-    public int? MessageId { get; set; }
+    public int MessageId { get; set; }
     public int EventId { get; set; }
     public required int SubjectId { get; set; }
 

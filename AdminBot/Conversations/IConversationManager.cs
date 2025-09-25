@@ -14,4 +14,8 @@ public interface IConversationManager
     T GetUserState<T>(long userId) where T : ConversationState;
     
     INotificationService NotificationService { get; }
+    
+    Task ResetUserState(long userId);
+
+    void FinishConversation(long userId);
 }

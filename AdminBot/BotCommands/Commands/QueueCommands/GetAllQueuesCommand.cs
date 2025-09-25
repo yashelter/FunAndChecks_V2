@@ -2,7 +2,6 @@ using AdminBot.BotCommands.Flows;
 using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Services.ApiClient;
-using AdminBot.Services.QueueManager;
 using AdminBot.Services.Utils;
 using Telegram.Bot.Types;
 

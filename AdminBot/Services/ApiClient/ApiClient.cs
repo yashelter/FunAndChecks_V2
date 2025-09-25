@@ -107,6 +107,19 @@ public class ApiClient(
         }
     }
 
+    public async Task UpdateQueueState(long adminId, string userId, int eventId, QueueUserStatus status)
+    {
+        var requestDto = new UpdateQueueStatusDto(status);
+        
+        var result =  await PutWithAuthAsync<UpdateQueueStatusDto>(
+            adminId, 
+            $"/api/admin/queue/{eventId}/user/{userId}/status",
+            requestDto
+        );
+        
+        if (!result) throw new InvalidOperationException("Something went wrong in UpdateQueueState");
+    }
+
 
     public async Task<SubjectDto?> CreateNewSubject(long adminId, string name)
     {

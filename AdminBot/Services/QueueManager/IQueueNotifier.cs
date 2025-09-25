@@ -28,6 +28,8 @@ public interface IQueueNotifier
     /// <param name="userId">ID пользователя в Telegram.</param>
     Task UnsubscribeUserFromQueue(long userId);
     
+    Task<bool> IsUserSubscribed(long userId);
+    
     /// <summary>
     /// Находит и возвращает активную подписку пользователя.
     /// </summary>

@@ -28,6 +28,7 @@ public interface IApiClient
     
     
     Task CreateSubmission(long adminId, string userId, int taskId, SubmissionStatus status, string comment);
+    Task UpdateQueueState(long adminId, string userId, int eventId, QueueUserStatus status);
     Task<SubjectDto?> CreateNewSubject(long adminId, string name);
     Task<GroupDto?> CreateNewGroup(long adminId, string name, int groupNumber, int startYear);
     Task<CreateTaskDto?> CreateNewTask(long adminId, int subjectId, string name, int maxPoints,

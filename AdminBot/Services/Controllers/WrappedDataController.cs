@@ -48,7 +48,7 @@ public static class WrappedDataController
             $"Попытка от: <code>{s.SubmissionDate.ToShortDateString()}</code>\n" +
             $"Результат: <code>{s.Status.ToString()}</code>\n" +
             $"Принимал: <code>{(s.Admin is null ? "Ошибка (Можно считать бд сломана)" : s.Admin.Name)}</code>\n" +
-            $"Комментарий:\n <blockquote>{s.SubmissionDate}</blockquote>\n"
+            $"Комментарий: <blockquote>{s.Comment}</blockquote>\n"
         ).ToList();
     }
     

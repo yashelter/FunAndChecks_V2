@@ -17,7 +17,7 @@ public class ConversationManager(
     : IConversationManager
 {
     public INotificationService NotificationService { get; } = notificationService;
-    
+
 
     public async Task StartFlowAsync(ConversationFlow flow, ConversationState initialState)
     {
@@ -26,7 +26,8 @@ public class ConversationManager(
         
         if (storage.ContainsKey(userId))
         {
-            await NotificationService.SendTextMessageAsync(chatId, "There is already an active conversation with this user");
+            await NotificationService.SendTextMessageAsync(chatId, 
+                "Попытка создать вложенный поток [DBG]");
             logger.LogWarning("Already active conversation {UserId}", userId);
             throw new InvalidOperationException("Conversation already started");
         }
@@ -116,7 +117,7 @@ public class ConversationManager(
                 break;
         }
     }
-    private void FinishConversation(long userId)
+    public void FinishConversation(long userId)
     {
         storage.TryRemove(userId, out _);
     }
@@ -139,5 +140,11 @@ public class ConversationManager(
             return typedState;
         }
         throw new InvalidCastException($"The current conversation state is of type '{session.State.GetType().Name}', but type '{typeof(T).Name}' was requested.");
+    }
+    
+    public async Task ResetUserState(long userId)
+    {
+        storage.TryRemove(userId, out _);
+        await notificationService.SendTextMessageAsync(userId, "Состояние потоков было сброшено");
     }
 }
