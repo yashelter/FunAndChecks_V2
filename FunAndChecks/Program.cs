@@ -31,6 +31,11 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 
+builder.Configuration.AddJsonFile(
+    "config/initialAdmins.json",
+    optional: true,
+    reloadOnChange: true
+);
 
 builder.Services.AddSignalR();
 

@@ -48,6 +48,7 @@
       start_period: 20s
     volumes:
       - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
+      - ./config/initialAdmins.json:/app/config/initialAdmins.json:ro
 
   user-bot:
     container_name: user-bot
