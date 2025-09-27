@@ -89,21 +89,6 @@ namespace FunAndChecks.Migrations
                     b.ToTable("GroupSubjects");
                 });
 
-            modelBuilder.Entity("FunAndChecks.Models.JoinTables.QueueEventGroup", b =>
-                {
-                    b.Property<int>("QueueEventId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("QueueEventId", "GroupId");
-
-                    b.HasIndex("GroupId");
-
-                    b.ToTable("QueueEventGroups");
-                });
-
             modelBuilder.Entity("FunAndChecks.Models.QueueEvent", b =>
                 {
                     b.Property<int>("Id")
@@ -242,6 +227,9 @@ namespace FunAndChecks.Migrations
 
                     b.Property<string>("LastName")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Letter")
                         .HasColumnType("text");
 
                     b.Property<bool>("LockoutEnabled")
@@ -485,25 +473,6 @@ namespace FunAndChecks.Migrations
                     b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("FunAndChecks.Models.JoinTables.QueueEventGroup", b =>
-                {
-                    b.HasOne("FunAndChecks.Models.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FunAndChecks.Models.QueueEvent", "QueueEvent")
-                        .WithMany("AllowedGroups")
-                        .HasForeignKey("QueueEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
-
-                    b.Navigation("QueueEvent");
-                });
-
             modelBuilder.Entity("FunAndChecks.Models.QueueEvent", b =>
                 {
                     b.HasOne("FunAndChecks.Models.Subject", "Subject")
@@ -653,8 +622,6 @@ namespace FunAndChecks.Migrations
 
             modelBuilder.Entity("FunAndChecks.Models.QueueEvent", b =>
                 {
-                    b.Navigation("AllowedGroups");
-
                     b.Navigation("Participants");
                 });
 

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AdminBot.Models;
@@ -30,7 +31,7 @@ public class ApiRequestsWrapper(
 
             if (tokenSession?.JwtToken == null)
             {
-                throw new InvalidOperationException($"User {userId} is not logged in.");
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenSession.JwtToken);
@@ -58,6 +59,8 @@ public class ApiRequestsWrapper(
         }
         return response.IsSuccessStatusCode;
     }
+    
+    
 
 
     /// <summary>
@@ -82,7 +85,7 @@ public class ApiRequestsWrapper(
                 var newToken = await TelegramLoginAsync(userId);
                 if (newToken == null)
                 {
-                    throw new InvalidOperationException($"User {userId} is not logged in.");
+                    return new HttpResponseMessage(HttpStatusCode.Unauthorized);
                 }
                 tokenFolder.SaveUserTokenSession(new UserSession { UserId = userId, JwtToken = newToken });
             }
@@ -124,6 +127,54 @@ public class ApiRequestsWrapper(
         return null;
     }
 
+    
+    /// <summary>
+    /// Отправляет Put-запрос с автоматическим обновлением токена.
+    /// Возвращает true в случае успеха.
+    /// </summary>
+    /// <typeparam name="TRequest">Тип отправляемого DTO.</typeparam>
+    protected async Task<bool> PutWithAuthAsync<TRequest>(long userId, string requestUri, TRequest data)
+        where TRequest : class
+    {
+        var client = GetHttpClient();
+        var session = tokenFolder.GetUserTokenSession(userId);
+        
+        async Task<HttpResponseMessage> MakeRequest()
+        {
+            var tokenSession = tokenFolder.GetUserTokenSession(userId);
+
+            if (tokenSession?.JwtToken == null)
+            {
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            }
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenSession.JwtToken);
+            return await client.PutAsJsonAsync(requestUri, data);
+        }
+
+        var response = await MakeRequest();
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            logger.LogInformation("Token expired for user {UserId}. Refreshing...", userId);
+
+            var newToken = await TelegramLoginAsync(userId);
+            if (newToken == null)
+            {
+                logger.LogError("Failed to refresh token for user {UserId}.", userId);
+                return false;
+            }
+
+            session ??= new UserSession() {UserId = userId};
+            
+            session.JwtToken = newToken;
+            tokenFolder.SaveUserTokenSession(session);
+            response = await MakeRequest();
+        }
+        return response.IsSuccessStatusCode;
+    }
+    
+    
     protected async Task<T?> GetWithAuthAsync<T>(long userId, string requestUri) where T : class
     {
         var client = GetHttpClient();
@@ -133,7 +184,7 @@ public class ApiRequestsWrapper(
             var session = tokenFolder.GetUserTokenSession(userId);
             if (session?.JwtToken == null)
             {
-                throw new InvalidOperationException("User is not logged in.");
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", session.JwtToken);

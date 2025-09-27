@@ -1,13 +1,16 @@
 using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 
 using static AdminBot.Utils.InputParser;
+
 namespace AdminBot.BotCommands.Flows;
+
 
 public class CreateGroupFlow: ConversationFlow
 {
-    public CreateGroupFlow()
+    public CreateGroupFlow(IApiClient apiClient)
     {
         var askNameStep = new FlowStep()
         {
@@ -15,23 +18,26 @@ public class CreateGroupFlow: ConversationFlow
             {
                 await manager.NotificationService.SendTextMessageAsync(conversation.ChatId, "Введите название группы:");
             },
+            
             OnResponse = async (manager, update) =>
             {
-                var state = manager.GetUserState<CreateGroupState>(update.GetChatId());
+                var state = manager.GetUserState<CreateGroupState>(update.GetUserId());
+                
                 state.GroupName = update.GetMessageText();
                 var parsed = ParseGroupString(state.GroupName);
                 
                 if (parsed == null)
                 {
-                    await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), "Введено не очень. Регулярка не смогла. " +
-                        "Введите название группы ещё разик:");
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    await manager.NotificationService.SendTextMessageAsync(
+                        update.GetChatId(), 
+                        "Введено не очень. Регулярка не смогла. Введите название группы ещё разик:");
+                    return StepResultState.Nothing;
                 }
 
                 state.GroupNumber = parsed.Value.YY;
                 state.StartYear = parsed.Value.ZZ;
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -54,13 +60,18 @@ public class CreateGroupFlow: ConversationFlow
             
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.RepeatStep;
                 var callbackData = update.GetCallbackText();
                 
                 if (callbackData == "confirm_create_group")
                 {
                     var state = manager.GetUserState<CreateGroupState>(update.GetUserId());
-                    await manager.ApiClient.CreateNewGroup(update.GetUserId(), state.GroupName!, state.GroupNumber, state.StartYear);
+                    
+                    await apiClient.CreateNewGroup(
+                        update.GetUserId(), 
+                        state.GroupName!,
+                        state.GroupNumber,
+                        state.StartYear);
 
                     await manager.NotificationService.EditMessageTextAsync(
                             update.GetChatId(),
@@ -68,28 +79,21 @@ public class CreateGroupFlow: ConversationFlow
                         $"Действие успешно выполнено\n" +
                         $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
                 else if (callbackData == "cancel_create_group")
                 {
-                    await manager.NotificationService.SendTextMessageAsync(update.CallbackQuery.From.Id,
+                    await manager.NotificationService.SendTextMessageAsync(
+                        update.GetChatId(),
                         $"Случилась отмена\n" +
                         $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
-                return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                return StepResultState.Nothing;
             }
         };
         Steps = [askNameStep, confirmStep];
     }
-
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new CreateGroupState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
-    }
+    
 }

@@ -2,6 +2,8 @@ using FunAndChecks.Models.Enums;
 
 namespace FunAndChecks.DTO;
 
+
+public record TaskLog(SubmissionStatus Status, string? Comment, UserDto? Admin, DateTime SubmissionDate);
 public record LinkGroupToSubjectDto(int GroupId, int SubjectId);
 
 public record ResultUpdateDto(Guid UserId, int TaskId, string NewStatus);

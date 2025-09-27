@@ -5,11 +5,11 @@ using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 
 using static AdminBot.Utils.InputParser;
+using static AdminBot.Services.Controllers.DataGetterController;
 
 
 namespace AdminBot.BotCommands.Flows;
 
-using static Services.Controllers.DataGetterController;
 
 public class CreateQueueEventFlow: ConversationFlow
 {
@@ -36,7 +36,7 @@ public class CreateQueueEventFlow: ConversationFlow
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
                 
                 await manager.NotificationService.EditMessageReplyMarkupAsync(
@@ -49,7 +49,7 @@ public class CreateQueueEventFlow: ConversationFlow
 
                 state.SubjectId = int.Parse(view.CallbackParam);
                 
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
         
@@ -70,11 +70,11 @@ public class CreateQueueEventFlow: ConversationFlow
                 {
                     await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), 
                         $"Нужно следовать формату, повторите ввод");
-                    return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                    return StepResultState.RepeatStep;
                 }
                 
                 state.EventTime = parsedDateTime;
-                return new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state };
+                return StepResultState.GoToNextStep;
             }
         };
 
@@ -87,9 +87,9 @@ public class CreateQueueEventFlow: ConversationFlow
             },
             OnResponse = (manager, update) =>
             {
-                var state = manager.GetUserState<CreateQueueEventState>(update.Message!.Chat.Id);
-                state.EventName = update.Message.Text;
-                return Task.FromResult(new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state });
+                var state = manager.GetUserState<CreateQueueEventState>(update.GetUserId());
+                state.EventName = update.GetMessageText();
+                return Task.FromResult(StepResultState.GoToNextStep);
             }
         };
         
@@ -120,47 +120,40 @@ public class CreateQueueEventFlow: ConversationFlow
             
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.RepeatStep;
+                
                 var callbackData = update.CallbackQuery.Data;
                 
-                if (callbackData == "confirm_create_event")
+                switch (callbackData)
                 {
-                    var state = manager.GetUserState<CreateQueueEventState>(update.CallbackQuery.From.Id);
+                    case "confirm_create_event":
+                    {
+                        var state = manager.GetUserState<CreateQueueEventState>(update.CallbackQuery.From.Id);
                     
-                    await manager.ApiClient.CreateQueueEvent(update.GetUserId(), state.EventName ?? string.Empty, 
-                        state.EventTime, state.SubjectId);
+                        await apiClient.CreateQueueEvent(update.GetUserId(), state.EventName ?? string.Empty, 
+                            state.EventTime, state.SubjectId);
                     
-                    await manager.NotificationService.EditMessageTextAsync(
-                        update.GetChatId(),
-                        update.GetMessageId(),
-                        text: "Событие успешно создано\n" +
-                              $"<blockquote>{update.GetMessageText()}</blockquote>");
+                        await manager.NotificationService.EditMessageTextAsync(
+                            update.GetChatId(),
+                            update.GetMessageId(),
+                            text: "Событие успешно создано\n" +
+                                  $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                        return StepResultState.FinishFlow;
+                    }
+                    case "cancel_create_event":
+                        await manager.NotificationService.EditMessageTextAsync(
+                            update.GetChatId(),
+                            update.GetMessageId(),
+                            text: "Создание события отменено\n" +
+                                  $"<blockquote>{update.GetMessageText()}</blockquote>");
+                    
+                        return StepResultState.FinishFlow;
+                    default:
+                        return StepResultState.RepeatStep;
                 }
-                else if (callbackData == "cancel_create_event")
-                {
-                    await manager.NotificationService.EditMessageTextAsync(
-                        update.GetChatId(),
-                        update.GetMessageId(),
-                        text: "Создание события отменено\n" +
-                              $"<blockquote>{update.GetMessageText()}</blockquote>");
-                    
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
-                }
-                return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
             }
         };
         Steps = [askSubjectIdStep, askTimeStep, askNameStep, confirmStep];
-    }
-    
-
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new CreateQueueEventState()
-        {
-            UserId = userId,
-            ChatId = chatId,
-        };
     }
 }

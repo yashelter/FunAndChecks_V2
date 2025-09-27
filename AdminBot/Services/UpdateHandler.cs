@@ -4,6 +4,7 @@ using AdminBot.Services.Controllers;
 using AdminBot.Services.Utils;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace AdminBot.Services;
 
@@ -20,6 +21,14 @@ public class UpdateHandler
     
     public async Task HandleUpdateAsync(Update update, CancellationToken ct)
     {
+        var chatType = update.Message?.Chat.Type ?? update.CallbackQuery?.Message?.Chat.Type;
+        
+        if (chatType != ChatType.Private)
+        {
+            _logger.LogWarning("Received update from non-private chat (Type: {ChatType}). Ignoring.", chatType);
+            return; 
+        }
+        
         
         await using var scope = _serviceProvider.CreateAsyncScope();
 

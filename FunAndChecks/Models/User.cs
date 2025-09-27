@@ -13,6 +13,7 @@ public class User : IdentityUser<Guid> // Используем Guid как ти�
     public Group? Group { get; set; }
     
     public string? Color { get; set; }
+    public string? Letter { get; set; }
 
     public virtual ICollection<UserRole> UserRoles { get; set; }
     public ICollection<UserTaskSubmission> Submissions { get; set; } = new List<UserTaskSubmission>();

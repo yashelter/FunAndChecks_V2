@@ -1,6 +1,7 @@
 using AdminBot.BotCommands;
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
 using AdminBot.Services.Utils;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,21 +17,21 @@ public class CommandRouter
     private readonly ILogger<CommandRouter> _logger;
     private readonly Dictionary<string, IBotCommand> _commands;
     private readonly IConversationManager _conversationManager;
-    private readonly IQueueManager _queueManager;
     private readonly IQueueController _queueController;
+    private readonly INotificationService _bot;
     
 
     public CommandRouter(IEnumerable<IBotCommand> commands,
         IConversationManager conversationManager,
         ILogger<CommandRouter> logger,
-        IQueueManager queueManager, 
-        IQueueController queueController)
+        IQueueController queueController,
+        INotificationService notificationService)
     {
         _commands = commands.ToDictionary(c => c.Name, c => c);
         _conversationManager =  conversationManager;
         _logger = logger;
-        _queueManager = queueManager;
         _queueController = queueController;
+        _bot = notificationService;
     }
 
     /// <summary>
@@ -43,22 +44,37 @@ public class CommandRouter
     /// <param name="update">Обновление из Telegram Api (новое сообщение или callback)</param>
     public async Task ProcessCommand(Update update)
     {
-        
         var chatId = update.GetChatId();
         var userId = update.GetUserId();
-
+        
+        // Команда позволяющая сбросить состояние из произвольного состояния, учитывая малое тестирование
+        // является необходимостью. В дальнейшем конечно, нужно избавиться от потенциальных softlock'ов
+        if (update is { Type: UpdateType.Message, Message.Text: "/reset" })
+        {
+            await _queueController.ResetUserState(userId);
+            await _conversationManager.ResetUserState(userId);
+            _logger.LogInformation("Reset user state for user {UserId}", userId);
+        }
+        
         if (await _conversationManager.IsUserInConversationAsync(chatId))
         {
             await _conversationManager.ProcessResponseAsync(update);
             return;
         }
 
-
         // TODO: в теории можно проверять, смог ли контроллер обработать действие
-        if (await _queueManager.IsUserSubscribed(userId) && update.Type == UpdateType.CallbackQuery)
+        
+        // значит действие должно быть из очереди (если очередь создаст поток, мы попадём выше)
+        if (await _queueController.IsUserSubscribed(userId) && update.Type == UpdateType.CallbackQuery)
         {
             await _queueController.HandleQueueCallbackAction(update);
             return;
+        }
+        
+        // прилетело сообщение вне потока, и при активной подписке, дабы не усложнять - отменяем подписку
+        if (await _queueController.IsUserSubscribed(userId) && update.Type == UpdateType.Message)
+        {
+            await _queueController.ResetUserState(userId);
         }
         
         

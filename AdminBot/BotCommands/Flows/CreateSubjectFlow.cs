@@ -1,12 +1,13 @@
 using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
+using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
 
 namespace AdminBot.BotCommands.Flows;
 
 public class CreateSubjectFlow : ConversationFlow
 {
-    public CreateSubjectFlow()
+    public CreateSubjectFlow(IApiClient apiClient)
     {
         var askNameStep = new FlowStep()
         {
@@ -16,9 +17,9 @@ public class CreateSubjectFlow : ConversationFlow
             },
             OnResponse = (manager, update) =>
             {
-                var state = manager.GetUserState<CreateSubjectState>(update.GetChatId());
+                var state = manager.GetUserState<CreateSubjectState>(update.GetUserId());
                 state.SubjectName = update.GetMessageText();
-                return Task.FromResult(new StepResult() { State = StepResultState.GoToNextStep, ResultingState = state });
+                return Task.FromResult(StepResultState.GoToNextStep);
             }
         };
         
@@ -39,13 +40,13 @@ public class CreateSubjectFlow : ConversationFlow
             
             OnCallbackQuery = async (manager, update) =>
             {
-                if (update.CallbackQuery is null) return new StepResult() { State = StepResultState.RepeatStep, ResultingState = null };
+                if (update.CallbackQuery is null) return StepResultState.RepeatStep;
                 var callbackData = update.GetCallbackText();
                 
                 if (callbackData == "confirm_create_subject")
                 {
                     var state = manager.GetUserState<CreateSubjectState>(update.GetUserId());
-                    await manager.ApiClient.CreateNewSubject(update.GetUserId(), state.SubjectName!);
+                    await apiClient.CreateNewSubject(update.GetUserId(), state.SubjectName!);
 
                     await manager.NotificationService.EditMessageTextAsync(
                             update.GetChatId(),
@@ -53,7 +54,7 @@ public class CreateSubjectFlow : ConversationFlow
                         $"Предмет успешно создан\n" +
                         $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
                 else if (callbackData == "cancel_create_subject")
                 {
@@ -63,20 +64,11 @@ public class CreateSubjectFlow : ConversationFlow
                         $"Случилась отмена\n" +
                         $"<blockquote>{update.GetMessageText()}</blockquote>");
                     
-                    return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                    return StepResultState.FinishFlow;
                 }
-                return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                return StepResultState.Nothing;
             }
         };
         Steps = [askNameStep, confirmStep];
-    }
-
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new CreateSubjectState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
     }
 }

@@ -1,42 +1,52 @@
+using System.Collections.Concurrent;
 using AdminBot.Conversations;
 using AdminBot.Models;
 using AdminBot.Services.ApiClient;
+using AdminBot.Services.StateStorage;
 using AdminBot.Services.Utils;
-using Newtonsoft.Json;
 using Telegram.Bot.Types;
+
 
 namespace AdminBot.Services.Controllers;
 
 
 public class ConversationManager(
-    BotStateService botStateService,
-    IServiceProvider serviceProvider,
     INotificationService notificationService,
-    IApiClient apiClient)
+    ILogger<ConversationManager> logger,
+    IConversationStore storage)
     : IConversationManager
 {
     public INotificationService NotificationService { get; } = notificationService;
-    public IApiClient ApiClient { get; } = apiClient;
-    
 
-    public async Task StartFlowAsync(ConversationFlow flow, long chatId, long userId)
+
+    public async Task StartFlowAsync(ConversationFlow flow, ConversationState initialState)
     {
-        var state = flow.CreateStateObject(chatId, userId);
+        long userId = initialState.UserId;
+        long chatId = initialState.ChatId;
         
-        var session = new ConversationSession
+        if (storage.ContainsKey(userId))
+        {
+            await NotificationService.SendTextMessageAsync(chatId, 
+                "Попытка создать вложенный поток [DBG]");
+            logger.LogWarning("Already active conversation {UserId}", userId);
+            throw new InvalidOperationException("Conversation already started");
+        }
+        
+        var session = new ActiveConversationSession
         {
             ChatId = chatId,
             UserId = userId,
-            FlowTypeName = flow.GetType().FullName ?? throw new InvalidOperationException("Can't get flow type name"),
+            Flow = flow,
             CurrentStepIndex = 0,
-            StateJson = JsonConvert.SerializeObject(state)
+            State = initialState
         };
-        botStateService.SaveSession(session);
+
+        storage.AddOrUpdate(userId, session);
         
         var firstStep = flow.Steps[0];
         if (firstStep.OnEnter != null)
         {
-            await firstStep.OnEnter(this, state);
+            await firstStep.OnEnter(this, session.State);
         }
     }
     
@@ -44,121 +54,97 @@ public class ConversationManager(
     public async Task ProcessResponseAsync(Update update)
     {
         long userId = update.GetUserId();
-        
-        var session = botStateService.GetSession(update.GetUserId());
-        if (session == null) return;
-        
-        var flow = GetFlowByTypeName(session.FlowTypeName);
-        
-        if (flow == null)
+
+        if (!storage.TryGetValue(userId, out var session))
         {
-            await NotificationService.SendTextMessageAsync(update.GetChatId(), "Произошла внутренняя ошибка. Диалог сброшен.");
-            botStateService.DeleteSession(userId);
+            // TODO:
             return;
         }
 
-        var currentStep = flow.Steps[session.CurrentStepIndex];
+        var flow = session.Flow;
 
-        StepResult result = new() { State = StepResultState.RepeatStep };
+        var currentStep = flow.Steps[session.CurrentStepIndex];
+        StepResultState resultState = StepResultState.Nothing;
         
         if (update.Message != null && currentStep.OnResponse != null)
         {
-            result = await currentStep.OnResponse(this, update);
+            resultState = await currentStep.OnResponse(this, update);
         }
         else if (update.CallbackQuery != null && currentStep.OnCallbackQuery != null)
         {
-            result = await currentStep.OnCallbackQuery(this, update);
+            resultState = await currentStep.OnCallbackQuery(this, update);
         }
         
-        await ApplyStepResult(result, session, flow);
+        await ApplyStepResult(resultState, session, flow);
     }
     
-    private async Task ApplyStepResult(StepResult result, ConversationSession session, ConversationFlow flow)
+    private async Task ApplyStepResult(StepResultState resultState, ActiveConversationSession session, ConversationFlow flow)
     {
         var step = flow.Steps[session.CurrentStepIndex];
-
-        if (result.ResultingState is not null)
-        {
-            UpdateUserState(result.ResultingState);
-            session = botStateService.GetSession(result.ResultingState.UserId) ??
-                      throw new InvalidOperationException($"Can't get flow state for {result.ResultingState.UserId}");;
-        }
         
-        switch (result.State)
+        switch (resultState)
         {
             case StepResultState.GoToNextStep:
                 session.CurrentStepIndex++;
-                botStateService.SaveSession(session);
 
                 if (session.CurrentStepIndex < flow.Steps.Count)
                 {
                     var nextStep = flow.Steps[session.CurrentStepIndex];
                     if (nextStep.OnEnter != null)
                     {
-                        var state = flow.CreateStateObject(session.ChatId, session.UserId);
-                        await nextStep.OnEnter(this, state);
+                        await nextStep.OnEnter(this, session.State);
                     }
                 }
                 else
                 {
-                    botStateService.DeleteSession(session.UserId);
+                    logger.LogInformation("Flow for user {UserId} finished by reaching the end of steps.", session.UserId);
+                    FinishConversation(session.UserId);
                 }
                 break;
                 
             case StepResultState.FinishFlow:
             case StepResultState.CancelFlow:
-                botStateService.DeleteSession(session.UserId);
+                FinishConversation(session.UserId);
                 break;
                 
             case StepResultState.RepeatStep:
                 if (step.OnEnter != null)
                 {
-                    var state = flow.CreateStateObject(session.ChatId, session.UserId);
-                    await step.OnEnter(this, state);
+                    await step.OnEnter(this, session.State);
                 }
                 break;
             case StepResultState.Nothing:
                 break;
         }
     }
+    public void FinishConversation(long userId)
+    {
+        storage.TryRemove(userId, out _);
+    }
 
     public Task<bool> IsUserInConversationAsync(long userId)
     {
-        var session = botStateService.GetSession(userId);
-        return Task.FromResult(session != null);
+        var session = storage.ContainsKey(userId);
+        return Task.FromResult(session);
     }
 
-    public T GetUserState<T>(long userId) where T : ConversationState, new()
+    public T GetUserState<T>(long userId) where T : ConversationState
     {
-        var session = botStateService.GetSession(userId);
-        if (session == null)
+        if (!storage.TryGetValue(userId, out var session))
         {
-            throw new InvalidOperationException("No active conversation session found for this user.");
+            throw new InvalidOperationException($"No active conversation found for user {userId}.");
         }
-        
-        return JsonConvert.DeserializeObject<T>(session.StateJson) ?? new T();
-    }
 
-    
-    private void UpdateUserState(ConversationState state)
-    {
-        var session = botStateService.GetSession(state.UserId);
-        if (session != null)
+        if (session.State is T typedState)
         {
-            session.StateJson = JsonConvert.SerializeObject(state);
-            botStateService.SaveSession(session);
+            return typedState;
         }
+        throw new InvalidCastException($"The current conversation state is of type '{session.State.GetType().Name}', but type '{typeof(T).Name}' was requested.");
     }
-
     
-    private ConversationFlow? GetFlowByTypeName(string typeName)
+    public async Task ResetUserState(long userId)
     {
-        var flowType = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetTypes())
-            .FirstOrDefault(t => t.FullName == typeName && typeof(ConversationFlow).IsAssignableFrom(t));
-
-        if (flowType == null) return null;
-        
-        return serviceProvider.GetService(flowType) as ConversationFlow ?? Activator.CreateInstance(flowType) as ConversationFlow;
+        storage.TryRemove(userId, out _);
+        await notificationService.SendTextMessageAsync(userId, "Состояние потоков было сброшено");
     }
 }

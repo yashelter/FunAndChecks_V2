@@ -1,4 +1,5 @@
 using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.States;
 using AdminBot.Conversations;
 using AdminBot.Services.ApiClient;
 using AdminBot.Services.Utils;
@@ -12,8 +13,11 @@ public class CreateQueueEventCommand(IConversationManager conversationManager, I
     
     public async Task ExecuteAsync(Update update)
     {
-        CreateQueueEventFlow flow = new CreateQueueEventFlow(apiClient);
-        await conversationManager.StartFlowAsync(flow, update.GetChatId(), update.GetUserId());
-
+        var flow = new CreateQueueEventFlow(apiClient);
+        await conversationManager.StartFlowAsync(flow, new CreateQueueEventState()
+        {
+            ChatId = update.GetChatId(),
+            UserId = update.GetUserId()
+        });
     }
 }

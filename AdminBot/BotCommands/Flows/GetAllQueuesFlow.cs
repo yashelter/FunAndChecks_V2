@@ -1,7 +1,8 @@
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Models;
 using AdminBot.Services.ApiClient;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
 using AdminBot.Services.Utils;
 
 
@@ -12,9 +13,9 @@ using static Services.Controllers.DataGetterController;
 public class GetAllQueuesFlow: ConversationFlow
 {
 
-    public GetAllQueuesFlow(IQueueController queueController, IApiClient apiClient)
+    public GetAllQueuesFlow(IApiClient apiClient, IQueueController queueController)
     {
-        var askNameStep = new FlowStep()
+        var askEventStep = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
@@ -34,33 +35,23 @@ public class GetAllQueuesFlow: ConversationFlow
                         update.GetChatId(), 
                         update.GetMessageId(),
                         replyMarkup: events);
-                    return new StepResult() { State = StepResultState.Nothing, ResultingState = null };
+                    return StepResultState.Nothing;
                 }
+
+                int queueId = int.Parse(view.CallbackParam);
+
+                var res = await queueController.SubscribeToQueueEvent(update.GetUserId(), queueId);
                 
                 await manager.NotificationService.EditMessageTextAsync(
                     update.GetChatId(), 
                     update.GetMessageId(),
-                    $"Что то выбралось: {view.CallbackParam}",
+                    $"Выбрана очередь: {res.EventName}",
                     replyMarkup: null);
                 
-                
-                // TODO: action
-                
-                return new StepResult() { State = StepResultState.FinishFlow, ResultingState = null };
+                return StepResultState.FinishFlow;
             }
         };
         
-        Steps = new List<FlowStep> { askNameStep };
-    }
-    
-    
-    
-    public override ConversationState CreateStateObject(long chatId, long userId)
-    {
-        return new ConversationState()
-        {
-            ChatId = chatId,
-            UserId = userId,
-        };
+        Steps = [askEventStep];
     }
 }

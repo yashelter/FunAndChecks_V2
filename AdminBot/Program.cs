@@ -3,11 +3,13 @@ using AdminBot.BotCommands;
 using AdminBot.BotCommands.Commands.CreateCommands;
 using AdminBot.BotCommands.Commands.QueueCommands;
 using AdminBot.BotCommands.Flows;
+using AdminBot.BotCommands.Queue;
 using AdminBot.Conversations;
 using AdminBot.Services;
 using AdminBot.Services.ApiClient;
 using AdminBot.Services.Controllers;
-using AdminBot.Services.Queue;
+using AdminBot.Services.QueueManager;
+using AdminBot.Services.StateStorage;
 using Serilog;
 using Telegram.Bot;
 
@@ -40,11 +42,12 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ITokenService, BotStateService>();
         services.AddSingleton<SignalRService>();
-        services.AddSingleton<IQueueManager>(provider => provider.GetRequiredService<SignalRService>());
+        services.AddSingleton<IQueueNotifier>(provider => provider.GetRequiredService<SignalRService>());
         services.AddHostedService(provider => provider.GetRequiredService<SignalRService>());
         
         services.AddSingleton<BotStateService>();
         services.AddSingleton<UpdateHandler>();
+        services.AddSingleton<IConversationStore, InMemoryConversationStore>(); 
         
         services.AddScoped<IApiClient, ApiClient>();
         services.AddScoped<CommandRouter>();
@@ -57,12 +60,16 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddScoped<GetAllQueuesFlow>();
         services.AddScoped<CreateQueueEventFlow>();
         services.AddScoped<CreateGroupFlow>();
+        services.AddScoped<CreateTaskFlow>();
+        //services.AddScoped<LinkGroupToSubjectFlow>();
         
         // commands section
         services.AddScoped<IBotCommand, CreateSubjectCommand>();
         services.AddScoped<IBotCommand, GetAllQueuesCommand>();
         services.AddScoped<IBotCommand, CreateQueueEventCommand>();
         services.AddScoped<IBotCommand, CreateGroupCommand>();
+        services.AddScoped<IBotCommand, CreateTaskCommand>();
+        services.AddScoped<IBotCommand, LinkGroupToSubjectCommand>();
 
         
     })
