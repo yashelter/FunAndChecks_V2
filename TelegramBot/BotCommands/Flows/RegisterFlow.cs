@@ -183,7 +183,7 @@ public class RegisterFlow : ConversationFlow
                     registerState.Password,
                     registerState.GroupId,
                     registerState.TelegramUsername,
-                    1, 
+                    state.UserId, 
                     null
                 );
 
