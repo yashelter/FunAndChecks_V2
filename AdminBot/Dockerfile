@@ -3,19 +3,25 @@ USER $APP_UID
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Копируем .csproj файлы для AdminBot и его зависимости FunAndChecks
+COPY ["FunAndChecks/FunAndChecks.csproj", "FunAndChecks/"]
 COPY ["AdminBot/AdminBot.csproj", "AdminBot/"]
 RUN dotnet restore "AdminBot/AdminBot.csproj"
-COPY . .
-WORKDIR "/src/AdminBot"
-RUN dotnet build "./AdminBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./AdminBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Копируем исходный код ТОЛЬКО нужных проектов
+COPY FunAndChecks/ ./FunAndChecks/
+COPY AdminBot/ ./AdminBot/
 
-FROM base AS final
+RUN rm FunAndChecks/appsettings*.json
+
+# Публикуем
+WORKDIR /src/AdminBot
+RUN dotnet publish "AdminBot.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Этап 2: Финальный образ
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "AdminBot.dll"]

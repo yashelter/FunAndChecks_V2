@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using AdminBot.BotCommands.Queue;
-using AdminBot.Models;
 using FunAndChecks.DTO;
 using Microsoft.AspNetCore.SignalR.Client;
+using TelegramBot.BotCommands.Queue;
+using TelegramBot.Models;
 
-namespace AdminBot.Services.QueueManager;
+namespace TelegramBot.Services.QueueManager;
 
 
 /// <summary>
@@ -137,6 +137,7 @@ public class SignalRService : IQueueNotifier, IHostedService
                     _logger.LogError(ex, "Could not connect to SignalR hub after {MaxRetries} attempts.", maxRetries);
                     break;
                 }
+            
                 await Task.Delay(retryDelay, cancellationToken);
             }
         }

@@ -3,19 +3,25 @@ USER $APP_UID
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Копируем .csproj файлы для TelegramBot и его зависимости FunAndChecks
+COPY ["FunAndChecks/FunAndChecks.csproj", "FunAndChecks/"]
 COPY ["TelegramBot/TelegramBot.csproj", "TelegramBot/"]
 RUN dotnet restore "TelegramBot/TelegramBot.csproj"
-COPY . .
-WORKDIR "/src/TelegramBot"
-RUN dotnet build "./TelegramBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TelegramBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Копируем исходный код ТОЛЬКО нужных проектов
+COPY FunAndChecks/ ./FunAndChecks/
+COPY TelegramBot/ ./TelegramBot/
 
-FROM base AS final
+RUN rm FunAndChecks/appsettings*.json
+
+# Публикуем
+WORKDIR /src/TelegramBot
+RUN dotnet publish "TelegramBot.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Этап 2: Финальный образ
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "TelegramBot.dll"]

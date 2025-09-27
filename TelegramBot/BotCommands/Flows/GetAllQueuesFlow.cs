@@ -1,21 +1,20 @@
-using AdminBot.BotCommands.Queue;
-using AdminBot.Conversations;
-using AdminBot.Models;
-using AdminBot.Services.ApiClient;
-using AdminBot.Services.QueueManager;
-using AdminBot.Services.Utils;
+using TelegramBot.BotCommands.Queue;
+using TelegramBot.Conversations;
+using TelegramBot.Models;
+using TelegramBot.Services.ApiClient;
+using TelegramBot.Services.Controllers;
+using TelegramBot.Utils;
 
+namespace TelegramBot.BotCommands.Flows;
 
-namespace AdminBot.BotCommands.Flows;
-
-using static Services.Controllers.DataGetterController;
+using static DataGetterController;
 
 public class GetAllQueuesFlow: ConversationFlow
 {
 
     public GetAllQueuesFlow(IApiClient apiClient, IQueueController queueController)
     {
-        var askEventStep = new FlowStep()
+        var askNameStep = new FlowStep()
         {
             OnEnter = async (manager, conversation) =>
             {
@@ -52,6 +51,6 @@ public class GetAllQueuesFlow: ConversationFlow
             }
         };
         
-        Steps = [askEventStep];
+        Steps = [askNameStep];
     }
 }

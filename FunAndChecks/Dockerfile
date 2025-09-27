@@ -5,19 +5,28 @@ EXPOSE 8080
 EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Копируем ТОЛЬКО то, что нужно для API
 COPY ["FunAndChecks/FunAndChecks.csproj", "FunAndChecks/"]
 RUN dotnet restore "FunAndChecks/FunAndChecks.csproj"
-COPY . .
-WORKDIR "/src/FunAndChecks"
-RUN dotnet build "./FunAndChecks.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./FunAndChecks.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Копируем ТОЛЬКО исходный код API
+COPY FunAndChecks/ ./FunAndChecks/
 
-FROM base AS final
+# Публикуем
+WORKDIR /src/FunAndChecks
+RUN dotnet publish "FunAndChecks.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Этап 2: Финальный образ
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 CMD curl -f http://localhost:8080/health || exit 1
 ENTRYPOINT ["dotnet", "FunAndChecks.dll"]

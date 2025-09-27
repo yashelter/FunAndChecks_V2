@@ -5,10 +5,13 @@ using FunAndChecks.Hub;
 using FunAndChecks.Models;
 using FunAndChecks.Services;
 using FunAndChecks.Workers;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -117,25 +120,18 @@ builder.Services.AddHttpClient("ApiV1", client =>
     
 });
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        name: "PostgreSQL",
+        failureStatus: HealthStatus.Unhealthy
+    );
+
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var seeder = services.GetRequiredService<DataSeeder>();
-
-        await seeder.SeedAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred during database seeding.");
-    }
-}
 
 if (app.Environment.IsDevelopment())
 {
@@ -157,6 +153,37 @@ app.MapRazorPages();
 app.MapHub<QueueHub>("/queueHub");
 app.MapHub<ResultsHub>("/resultsHub");
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            logger.LogInformation("Applying database migrations...");
+            context.Database.Migrate();
+            logger.LogInformation("Database migrations applied successfully.");
+        }
+        
+        var seeder = services.GetRequiredService<DataSeeder>();
+        await seeder.SeedAsync();
+        logger.LogInformation("Database seeding completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred during database migration or seeding.");
+    }
+}
+
+
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 try
 {
