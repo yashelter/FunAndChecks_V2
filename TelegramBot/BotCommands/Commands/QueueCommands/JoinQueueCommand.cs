@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Telegram.Bot.Types;
 using TelegramBot.BotCommands.Flows;
 using TelegramBot.BotCommands.Queue;
+using TelegramBot.BotCommands.States;
 using TelegramBot.Conversations;
 using TelegramBot.Models;
 using TelegramBot.Services.ApiClient;
@@ -19,7 +20,7 @@ public class JoinQueueCommand (
     public async Task ExecuteAsync(Update update)
     {
         var flow = new JoinQueueFlow(apiClient);
-        await conversationManager.StartFlowAsync(flow, new ConversationState()
+        await conversationManager.StartFlowAsync(flow, new JoinQueueState()
         {
             ChatId = update.GetChatId(),
             UserId = update.GetUserId()
