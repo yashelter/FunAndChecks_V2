@@ -39,6 +39,7 @@
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - ApiConfiguration__BaseUrl=http://localhost:${API_INTERNAL_PORT}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${API_INTERNAL_PORT}/health || exit 1"]
       interval: 10s

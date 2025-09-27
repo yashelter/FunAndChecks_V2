@@ -115,9 +115,8 @@ builder.Services.AddHostedService<ResultsUpdateWorker>();
 
 builder.Services.AddHttpClient("ApiV1", client =>
 {
-    //var apiBaseUrl = builder.Configuration["ApiConfiguration:BaseUrl"];
-    client.BaseAddress = new Uri("http://localhost:5107");
-    
+    var apiBaseUrl = builder.Configuration["ApiConfiguration:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 
 builder.Services.AddHealthChecks()
