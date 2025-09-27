@@ -110,8 +110,7 @@ public class ResultsUpdateWorker : BackgroundService
                             totalPoints += task.MaxPoints;
                             break;
                         case SubmissionStatus.Rejected:
-                            displayValue = lastSubmission.Admin?.FirstName?.FirstOrDefault().ToString().ToUpper() ??
-                                           "?";
+                            displayValue = lastSubmission?.Admin?.Letter ?? "?";
                             break;
                         default: // NotSubmitted (хотя этот случай обработан выше)
                             displayValue = "";
