@@ -10,7 +10,7 @@ namespace TelegramBot.BotCommands.Commands.CreateCommands;
 
 public class RegisterCommand(IApiClient apiClient, IConversationManager conversationManager): IBotCommand
 {
-    public string Name { get; } = "/help";
+    public string Name { get; } = "/start";
     
     public async Task ExecuteAsync(Update update)
     {
