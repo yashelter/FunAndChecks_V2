@@ -13,6 +13,7 @@ RUN dotnet restore "AdminBot/AdminBot.csproj"
 # Копируем исходный код ТОЛЬКО нужных проектов
 COPY FunAndChecks/ ./FunAndChecks/
 COPY AdminBot/ ./AdminBot/
+COPY .config/ ./.config/
 
 RUN rm FunAndChecks/appsettings*.json
 

@@ -13,6 +13,7 @@ RUN dotnet restore "TelegramBot/TelegramBot.csproj"
 # Копируем исходный код ТОЛЬКО нужных проектов
 COPY FunAndChecks/ ./FunAndChecks/
 COPY TelegramBot/ ./TelegramBot/
+COPY .config/ ./.config/
 
 RUN rm FunAndChecks/appsettings*.json
 

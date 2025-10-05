@@ -11,8 +11,8 @@ WORKDIR /src
 COPY ["FunAndChecks/FunAndChecks.csproj", "FunAndChecks/"]
 RUN dotnet restore "FunAndChecks/FunAndChecks.csproj"
 
-# Копируем ТОЛЬКО исходный код API
 COPY FunAndChecks/ ./FunAndChecks/
+COPY .config/ ./.config/
 
 # Публикуем
 WORKDIR /src/FunAndChecks
