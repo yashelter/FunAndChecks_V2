@@ -13,7 +13,7 @@ using static Services.Controllers.DataGetterController;
 
 public class CreateSubmissionFlow: ConversationFlow
 {
-    public Func<Task>? AtEnd { get; set; }
+    public Func<Task>? AtEnd { get; set; } // если не будет стоять всё взорвется
     
     
     public CreateSubmissionFlow(IApiClient apiClient)
@@ -104,7 +104,7 @@ public class CreateSubmissionFlow: ConversationFlow
 
                     AtEnd?.Invoke();
                     
-                    return StepResultState.FinishFlow;
+                    return StepResultState.Nothing; // crutch!!
                 }
                 else if (callbackData == "reject_task")
                 {
@@ -145,7 +145,7 @@ public class CreateSubmissionFlow: ConversationFlow
 
                 AtEnd?.Invoke();
                 
-                return StepResultState.FinishFlow;
+                return StepResultState.Nothing; // crutch!!
             }
         };
 
