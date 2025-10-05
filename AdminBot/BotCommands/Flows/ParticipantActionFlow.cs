@@ -9,7 +9,7 @@ namespace AdminBot.BotCommands.Flows;
 
 public class ParticipantActionFlow : ConversationFlow
 {
-    public Func<Task>? AtEnd { get; set; }
+    public Func<Task>? AtEnd { get; set; } // аналогично, отсутствие приведёт к взрыву
 
     public ParticipantActionFlow(IApiClient apiClient)
     {
@@ -75,7 +75,7 @@ public class ParticipantActionFlow : ConversationFlow
 
                         await manager.NotificationService.SendTextMessageAsync(actionState.ChatId, "Статус участника изменен на 'Завершил'.");
                         AtEnd?.Invoke();
-                        return StepResultState.FinishFlow;
+                        return StepResultState.Nothing;
                     
                     case "action_set_status_skipped":
                         await apiClient.UpdateQueueState(
@@ -85,7 +85,7 @@ public class ParticipantActionFlow : ConversationFlow
                             QueueUserStatus.Skipped);
                         
                         AtEnd?.Invoke();
-                        return StepResultState.FinishFlow;
+                        return StepResultState.Nothing;
 
                     case "action_back_to_queue":
                         await apiClient.UpdateQueueState(
@@ -94,7 +94,7 @@ public class ParticipantActionFlow : ConversationFlow
                             actionState.EventId,
                             QueueUserStatus.Waiting);
                         AtEnd?.Invoke();
-                        return StepResultState.FinishFlow;
+                        return StepResultState.Nothing;
                 }
                 
                 return StepResultState.RepeatStep;
