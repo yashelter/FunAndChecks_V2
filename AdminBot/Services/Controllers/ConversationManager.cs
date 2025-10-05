@@ -72,6 +72,7 @@ public class ConversationManager(
         }
         else if (update.CallbackQuery != null && currentStep.OnCallbackQuery != null)
         {
+            logger.LogInformation("Processing callback query for user {UserId}", update.GetUserId());
             resultState = await currentStep.OnCallbackQuery(this, update);
         }
         

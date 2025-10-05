@@ -57,7 +57,7 @@ public class ParticipantActionFlow : ConversationFlow
                         {
                             AtEnd = async () =>
                             {
-                                manager.FinishConversation(actionState.UserId);
+                                manager.FinishConversation(update.GetUserId());
                                 await manager.StartFlowAsync(new ParticipantActionFlow(apiClient), actionState);
                             }
                         };

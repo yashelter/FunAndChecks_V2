@@ -58,6 +58,7 @@ public class CommandRouter
         
         if (await _conversationManager.IsUserInConversationAsync(chatId))
         {
+            _logger.LogInformation("User {UserId}, in conservation, processing", userId);
             await _conversationManager.ProcessResponseAsync(update);
             return;
         }
