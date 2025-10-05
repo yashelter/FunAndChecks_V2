@@ -39,6 +39,7 @@
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - ApiConfiguration__BaseUrl=http://localhost:${API_INTERNAL_PORT}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${API_INTERNAL_PORT}/health || exit 1"]
       interval: 10s
@@ -47,6 +48,7 @@
       start_period: 20s
     volumes:
       - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
+      - ./config/initialAdmins.json:/app/config/initialAdmins.json:ro
 
   user-bot:
     container_name: user-bot
@@ -78,6 +80,7 @@
       - DOTNET_ENVIRONMENT=Production
       - BotConfiguration__BotToken=${ADMIN_BOT_TOKEN}
       - ApiConfiguration__BaseUrl=http://funandchecks-api:${API_INTERNAL_PORT}
+      - ApiConfiguration__SharedSecret=${SHARED_SECRET}
 
 volumes:
   pgdata:

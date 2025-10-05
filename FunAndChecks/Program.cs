@@ -31,6 +31,11 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 
+builder.Configuration.AddJsonFile(
+    "config/initialAdmins.json",
+    optional: true,
+    reloadOnChange: true
+);
 
 builder.Services.AddSignalR();
 
@@ -115,9 +120,8 @@ builder.Services.AddHostedService<ResultsUpdateWorker>();
 
 builder.Services.AddHttpClient("ApiV1", client =>
 {
-    //var apiBaseUrl = builder.Configuration["ApiConfiguration:BaseUrl"];
-    client.BaseAddress = new Uri("http://localhost:5107");
-    
+    var apiBaseUrl = builder.Configuration["ApiConfiguration:BaseUrl"];
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 
 builder.Services.AddHealthChecks()

@@ -1,4 +1,5 @@
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.Conversations;
 using TelegramBot.Models;
 using TelegramBot.Services.StateStorage;
@@ -118,6 +119,8 @@ public class ConversationManager(
     {
         storage.TryRemove(userId, out _);
     }
+
+   
 
     public Task<bool> IsUserInConversationAsync(long userId)
     {

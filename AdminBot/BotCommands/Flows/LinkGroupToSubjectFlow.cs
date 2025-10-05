@@ -42,8 +42,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                     update.GetMessageId(),
                     replyMarkup: null);
                 
-                await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), 
-                    $"Что то выбралось: {view.CallbackParam}");
+                // await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), $"Что то выбралось: {view.CallbackParam}");
 
                 state.SubjectId = int.Parse(view.CallbackParam);
                 
@@ -81,8 +80,7 @@ public class LinkGroupToSubjectFlow: ConversationFlow
                     update.GetMessageId(),
                     replyMarkup: null);
                 
-                await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), 
-                    $"Что то выбралось: {view.CallbackParam}");
+                // await manager.NotificationService.SendTextMessageAsync(update.GetChatId(), $"Что то выбралось: {view.CallbackParam}");
 
                 state.GroupId = int.Parse(view.CallbackParam);
                 

@@ -10,11 +10,12 @@ namespace TelegramBot.BotCommands.Commands.CreateCommands;
 
 public class RegisterCommand(IApiClient apiClient, IConversationManager conversationManager): IBotCommand
 {
-    public string Name { get; } = "/register";
+    public string Name { get; } = "/start";
     
     public async Task ExecuteAsync(Update update)
     {
         var flow = new RegisterFlow(apiClient);
+        
         await conversationManager.StartFlowAsync(flow, new RegisterUserState()
         {
             ChatId = update.GetChatId(),

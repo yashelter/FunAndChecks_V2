@@ -253,6 +253,7 @@ public class ApiRequestsWrapper(
                 var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
                 return authResponse?.Token;
             }
+            logger.LogWarning("Response code for telegram-login failed: {StatusCode}", response.StatusCode);
 
             return null;
         }

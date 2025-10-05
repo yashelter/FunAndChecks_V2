@@ -110,8 +110,8 @@ public class CreateTaskFlow: ConversationFlow
                     $"Имя: <code>{state.Name}</code>\n" +
                     $"Количество баллов: <code>{state.MaxPoints.ToString()}</code>\n" +
                     $"Предмет: <code>{displayName}</code>\n",
-                    yesCallback: "confirm_create_event",
-                    noCallback: "cancel_create_event"
+                    yesCallback: "confirm_create_task",
+                    noCallback: "cancel_create_task"
                 );
             },
             
