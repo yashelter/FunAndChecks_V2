@@ -99,13 +99,13 @@ public class ConversationManager(
                 else
                 {
                     logger.LogInformation("Flow for user {UserId} finished by reaching the end of steps.", session.UserId);
-                    FinishConversation(session.UserId);
+                    await FinishConversation(session.UserId);
                 }
                 break;
                 
             case StepResultState.FinishFlow:
             case StepResultState.CancelFlow:
-                FinishConversation(session.UserId);
+                await FinishConversation(session.UserId);
                 break;
                 
             case StepResultState.RepeatStep:
@@ -118,9 +118,11 @@ public class ConversationManager(
                 break;
         }
     }
-    public void FinishConversation(long userId)
+    public Task FinishConversation(long userId)
     {
         storage.TryRemove(userId, out _);
+        return Task.CompletedTask;
+
     }
 
     public Task<bool> IsUserInConversationAsync(long userId)

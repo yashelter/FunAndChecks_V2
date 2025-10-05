@@ -57,12 +57,12 @@ public class ParticipantActionFlow : ConversationFlow
                         {
                             AtEnd = async () =>
                             {
-                                manager.FinishConversation(update.GetUserId());
+                                await manager.FinishConversation(update.GetUserId());
                                 await manager.StartFlowAsync(new ParticipantActionFlow(apiClient), actionState);
                             }
                         };
                         
-                        manager.FinishConversation(update.GetUserId()); // Вложенные запрещены, поэтому трюк
+                        await manager.FinishConversation(update.GetUserId()); // Вложенные запрещены, поэтому трюк
                         await manager.StartFlowAsync(submissionFlow, submissionState);
                         return StepResultState.Nothing;
 
