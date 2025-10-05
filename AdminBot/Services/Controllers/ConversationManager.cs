@@ -42,7 +42,7 @@ public class ConversationManager(
         };
 
         storage.AddOrUpdate(userId, session);
-        logger.LogInformation("Started conversation {UserId}", userId);
+        logger.LogInformation("Started conversation {UserId}, Flow: {Flow}", userId, session.Flow.GetType());
         
         var firstStep = flow.Steps[0];
         if (firstStep.OnEnter != null)
@@ -106,6 +106,7 @@ public class ConversationManager(
                 
             case StepResultState.FinishFlow:
             case StepResultState.CancelFlow:
+                logger.LogInformation("Flow for user {UserId} finished by reaching CancelFlow condition.", session.UserId);
                 await FinishConversation(session.UserId);
                 break;
                 
@@ -121,8 +122,9 @@ public class ConversationManager(
     }
     public Task FinishConversation(long userId)
     {
-        logger.LogInformation("Finish conversation {UserId}", userId);
-        storage.TryRemove(userId, out _);
+        storage.TryRemove(userId, out var session);
+
+        logger.LogInformation("Finish conversation {UserId}, {Session}", userId, session.Flow.GetType());
         return Task.CompletedTask;
     }
 
