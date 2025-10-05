@@ -43,11 +43,8 @@
     <ItemGroup>
       <Folder Include="Migrations\" />
     </ItemGroup>
-
-    <ItemGroup>
-        <DotNetCliToolReference Include="Swashbuckle.AspNetCore.Cli" Version="9.0.6" />
-    </ItemGroup>
+    
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="dotnet swagger swagger-ui-assets -o wwwroot/swagger --version 6.5.0" />
+        <Exec Command="dotnet swagger swagger-ui-assets -o wwwroot/swagger" />
     </Target>
 </Project>
