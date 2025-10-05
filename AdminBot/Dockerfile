@@ -16,6 +16,7 @@ COPY AdminBot/ ./AdminBot/
 COPY .config/ ./.config/
 
 RUN rm FunAndChecks/appsettings*.json
+RUN dotnet tool restore
 
 # Публикуем
 WORKDIR /src/AdminBot

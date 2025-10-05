@@ -14,6 +14,8 @@ RUN dotnet restore "FunAndChecks/FunAndChecks.csproj"
 COPY FunAndChecks/ ./FunAndChecks/
 COPY .config/ ./.config/
 
+RUN dotnet tool restore
+
 # Публикуем
 WORKDIR /src/FunAndChecks
 RUN dotnet publish "FunAndChecks.csproj" -c Release -o /app/publish /p:UseAppHost=false

@@ -16,7 +16,7 @@ COPY TelegramBot/ ./TelegramBot/
 COPY .config/ ./.config/
 
 RUN rm FunAndChecks/appsettings*.json
-
+RUN dotnet tool restore
 # Публикуем
 WORKDIR /src/TelegramBot
 RUN dotnet publish "TelegramBot.csproj" -c Release -o /app/publish /p:UseAppHost=false
