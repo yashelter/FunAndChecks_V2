@@ -42,6 +42,7 @@ public class ConversationManager(
         };
 
         storage.AddOrUpdate(userId, session);
+        logger.LogInformation("Started conversation {UserId}", userId);
         
         var firstStep = flow.Steps[0];
         if (firstStep.OnEnter != null)
@@ -120,9 +121,9 @@ public class ConversationManager(
     }
     public Task FinishConversation(long userId)
     {
+        logger.LogInformation("Finish conversation {UserId}", userId);
         storage.TryRemove(userId, out _);
         return Task.CompletedTask;
-
     }
 
     public Task<bool> IsUserInConversationAsync(long userId)
