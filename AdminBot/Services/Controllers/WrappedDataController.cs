@@ -101,7 +101,11 @@ public static class WrappedDataController
         return filtered.Select(qEvent => new WrappedData()
             {
                 GetId = () => qEvent.Id.ToString(),
-                GetString = () => $"{qEvent.EventDateTime.ToShortDateString()} -- {qEvent.Name}",
+                GetString = () =>
+                {
+                    DateTime localEventTime = qEvent.EventDateTime.ToLocalTime();
+                    return $"{localEventTime:dd.MM.yyyy HH:mm} -- {qEvent.Name}";
+                },
             })
             .ToList();
     }
