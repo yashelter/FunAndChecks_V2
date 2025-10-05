@@ -42,6 +42,7 @@ public class ConversationManager(
         };
 
         storage.AddOrUpdate(userId, session);
+        logger.LogInformation("Started conversation {UserId}, Flow: {Flow}", userId, session.Flow.GetType());
         
         var firstStep = flow.Steps[0];
         if (firstStep.OnEnter != null)
@@ -72,6 +73,7 @@ public class ConversationManager(
         }
         else if (update.CallbackQuery != null && currentStep.OnCallbackQuery != null)
         {
+            logger.LogInformation("Processing callback query for user {UserId}", update.GetUserId());
             resultState = await currentStep.OnCallbackQuery(this, update);
         }
         
@@ -98,13 +100,14 @@ public class ConversationManager(
                 else
                 {
                     logger.LogInformation("Flow for user {UserId} finished by reaching the end of steps.", session.UserId);
-                    FinishConversation(session.UserId);
+                    await FinishConversation(session.UserId);
                 }
                 break;
                 
             case StepResultState.FinishFlow:
             case StepResultState.CancelFlow:
-                FinishConversation(session.UserId);
+                logger.LogInformation("Flow for user {UserId} finished by reaching CancelFlow condition.", session.UserId);
+                await FinishConversation(session.UserId);
                 break;
                 
             case StepResultState.RepeatStep:
@@ -117,9 +120,12 @@ public class ConversationManager(
                 break;
         }
     }
-    public void FinishConversation(long userId)
+    public Task FinishConversation(long userId)
     {
-        storage.TryRemove(userId, out _);
+        storage.TryRemove(userId, out var session);
+
+        logger.LogInformation("Finish conversation {UserId}, {Session}", userId, session.Flow.GetType());
+        return Task.CompletedTask;
     }
 
     public Task<bool> IsUserInConversationAsync(long userId)

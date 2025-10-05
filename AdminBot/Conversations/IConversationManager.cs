@@ -17,5 +17,5 @@ public interface IConversationManager
     
     Task ResetUserState(long userId);
 
-    void FinishConversation(long userId);
+    Task FinishConversation(long userId);
 }

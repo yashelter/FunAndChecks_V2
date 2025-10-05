@@ -117,7 +117,7 @@ public class AdminController(
         var newEvent = new QueueEvent
         {
             Name = dto.Name,
-            EventDateTime = dto.EventDateTime.ToUniversalTime(),
+            EventDateTime = dto.EventDateTime,
             SubjectId = dto.SubjectId
         };
         

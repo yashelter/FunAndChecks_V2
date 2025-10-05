@@ -58,6 +58,18 @@ public class NotificationService(
             parseMode: ParseMode.Html,
             replyMarkup: inlineKeyboard);
     }
-    
-    
+
+    public async Task SendJoinQueueMenuAsync(long chatId)
+    {
+        var replyKeyboardMarkup = new ReplyKeyboardMarkup([["/join_queue"]])
+        {
+            OneTimeKeyboard = false 
+        };
+
+        await bot.SendMessage(
+            chatId: chatId,
+            text: "Выберите команду из меню:",
+            replyMarkup: replyKeyboardMarkup
+        );
+    }
 }
