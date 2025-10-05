@@ -135,15 +135,19 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-
+app.UseStaticFiles();
+app.UseRouting();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        options.RoutePrefix = "swagger";
+    });
 }
-app.UseStaticFiles();
-app.UseRouting();
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
