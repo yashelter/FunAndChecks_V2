@@ -51,7 +51,7 @@ public class RegisterFlow : ConversationFlow
             OnEnter = async (manager, state) =>
             {
                 await manager.NotificationService.SendTextMessageAsync(state.ChatId,
-                    "Введите ваш email (он будет использоваться как логин):");
+                    "Введите ваш email:");
             },
             OnResponse = async (manager, update) =>
             {
@@ -160,7 +160,7 @@ public class RegisterFlow : ConversationFlow
                     await manager.NotificationService.EditMessageTextAsync(
                         update.GetChatId(),
                         update.GetMessageId(),
-                        text: "Регистрация отменена");
+                        text: "Регистрация отменена, /start");
 
                     return StepResultState.CancelFlow;
                 }
@@ -192,11 +192,12 @@ public class RegisterFlow : ConversationFlow
                 if (isSuccess)
                 {
                     await manager.NotificationService.SendTextMessageAsync(state.ChatId, "Регистрация прошла успешно!");
+                    await manager.NotificationService.SendJoinQueueMenuAsync(state.ChatId);
                 }
                 else
                 {
                     await manager.NotificationService.SendTextMessageAsync(state.ChatId,
-                        $"Ошибка регистрации. \n\nНачните заново: /register");
+                        $"Ошибка регистрации. \n\nНачните заново: /start");
                 }
                 
                 manager.FinishConversation(state.ChatId);

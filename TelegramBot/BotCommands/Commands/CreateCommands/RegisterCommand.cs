@@ -15,6 +15,7 @@ public class RegisterCommand(IApiClient apiClient, IConversationManager conversa
     public async Task ExecuteAsync(Update update)
     {
         var flow = new RegisterFlow(apiClient);
+        
         await conversationManager.StartFlowAsync(flow, new RegisterUserState()
         {
             ChatId = update.GetChatId(),

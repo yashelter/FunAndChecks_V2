@@ -19,7 +19,6 @@ public interface INotificationService
     
     Task SendConfirmationAsync(long chatId, string text, string yesCallback, string noCallback,
         string yesReply = "✅ Подтвердить", string noReply = "❌ Отмена");
-    
-    
-    
+
+    Task SendJoinQueueMenuAsync(long chatId);
 }
