@@ -17,6 +17,20 @@
       timeout: 5s
       retries: 5
       start_period: 30s
+      
+  caddy:
+    image: caddy:latest
+    container_name: caddy-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - funandchecks-api
 
   funandchecks-api:
     container_name: funandchecks-api
@@ -29,8 +43,8 @@
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "${API_EXTERNAL_PORT}:${API_INTERNAL_PORT}"
+    #ports:
+    #  - "${API_EXTERNAL_PORT}:${API_INTERNAL_PORT}"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:${API_INTERNAL_PORT}
@@ -46,6 +60,8 @@
       timeout: 5s
       retries: 5
       start_period: 20s
+    expose:
+      - "${API_INTERNAL_PORT}"
     volumes:
       - dataprotection-keys:/home/app/.aspnet/DataProtection-Keys
       - ./config/initialAdmins.json:/app/config/initialAdmins.json:ro
@@ -85,3 +101,5 @@
 volumes:
   pgdata:
   dataprotection-keys:
+  caddy_data:
+  caddy_config:

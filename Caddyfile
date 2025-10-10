@@ -1,0 +1,3 @@
+funandchecks.ru {
+    reverse_proxy funandchecks-api:8080
+}
