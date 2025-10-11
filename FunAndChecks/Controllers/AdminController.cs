@@ -291,7 +291,15 @@ public class AdminController(
 
         if (queueUser == null) return NotFound("User not found in this queue.");
 
+        var adminId = GetCurrentAdminId();
+
+        var admin = await context.Users.FindAsync(adminId);
+        if (admin == null) return Forbid();
+
         queueUser.Status = dto.Status;
+        context.Users.Attach(admin);
+        
+        queueUser.CurrentAdmin = admin;
 
         await context.SaveChangesAsync();
 

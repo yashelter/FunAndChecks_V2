@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiTests", "ApiTests\ApiTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramBot", "TelegramBot\TelegramBot.csproj", "{5F12DC63-7A6B-4107-B601-97B3B8A33F61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminBot", "AdminBot\AdminBot.csproj", "{F6DBD7CC-226B-4D99-88EC-D8621C49D58B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminUI", "AdminUI\AdminUI.csproj", "{7115879F-116F-4F17-8D66-186676FAF956}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,9 +31,9 @@ Global
 		{5F12DC63-7A6B-4107-B601-97B3B8A33F61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F12DC63-7A6B-4107-B601-97B3B8A33F61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F12DC63-7A6B-4107-B601-97B3B8A33F61}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F6DBD7CC-226B-4D99-88EC-D8621C49D58B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6DBD7CC-226B-4D99-88EC-D8621C49D58B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6DBD7CC-226B-4D99-88EC-D8621C49D58B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6DBD7CC-226B-4D99-88EC-D8621C49D58B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7115879F-116F-4F17-8D66-186676FAF956}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7115879F-116F-4F17-8D66-186676FAF956}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7115879F-116F-4F17-8D66-186676FAF956}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7115879F-116F-4F17-8D66-186676FAF956}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,17 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Главная</MudNavLink>
+    
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/management" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Build">Создание</MudNavLink>
+            <MudNavLink Href="/destructive-operations" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error">Удаление</MudNavLink>
+            <MudNavLink Href="/queues" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Queue">Очереди</MudNavLink>
+            <MudNavLink Href="/user-management" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonSearch">Пользователи</MudNavLink>
+            <MudNavLink Href="/logout" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Logout">Выйти</MudNavLink>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="/login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Войти</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+
+</MudNavMenu>

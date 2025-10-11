@@ -48,4 +48,8 @@
       <Folder Include="Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\AdminUI\AdminUI.csproj" />
+    </ItemGroup>
+
 </Project>

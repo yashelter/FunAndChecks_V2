@@ -40,17 +40,20 @@ public class PublicController(ApplicationDbContext context) : ControllerBase
                 qe.SubjectId,
                 qe.EventDateTime,
                 qe.Participants
+                    .Where(p => p.User.Group != null)
                     .OrderBy(p => p.JoinTime)
                     .Select(p => new QueueParticipantDetailDto(
                         p.UserId,
                         p.User.FirstName,
                         p.User.LastName,
-                        p.User.Group.Name,
+                        p.User.Group!.Name,
                         p.User.Submissions
                             .Where(s => s.Status == SubmissionStatus.Accepted)
-                            .Sum(s => s.Task.MaxPoints),
+                            .Select(s => s.Task)
+                            .Distinct()
+                            .Sum(t => t.MaxPoints),
                         p.Status,
-                        p.User.Color ?? "#000000",
+                        p.User.Color ?? "#ffffff",
                         p.CurrentAdmin != null ? $"{p.CurrentAdmin.FirstName}" : null
                     )).ToList()
             ))

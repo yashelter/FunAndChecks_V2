@@ -132,17 +132,25 @@ builder.Services.AddHealthChecks()
     );
 
 
-var DevelopmentCorsPolicy = "DevelopmentCorsPolicy";
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: DevelopmentCorsPolicy,
+    options.AddPolicy(name: "myAllowSpecificOrigins",
+        policy =>
+        {
+            policy.WithOrigins("https://funandchecks.ru",
+                    "https://localhost:7207",
+                    "http://localhost:5207")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    
+    /*options.AddPolicy(name:  "DevelopmentCorsPolicy",
         policy =>
         {
             policy.AllowAnyOrigin()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
-        });
+        });*/
 });
 
 
@@ -161,7 +169,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseCors(DevelopmentCorsPolicy);
+app.UseCors("myAllowSpecificOrigins");
 app.UseBlazorFrameworkFiles();
 app.UseHttpsRedirection();
 

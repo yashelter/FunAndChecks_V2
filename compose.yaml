@@ -82,21 +82,6 @@
       - ApiConfiguration__BaseUrl=http://funandchecks-api:${API_INTERNAL_PORT}
       - ApiConfiguration__SharedSecret=${SHARED_SECRET}
 
-  admin-bot:
-    container_name: admin-bot
-    image: admin-bot
-    build:
-      context: .
-      dockerfile: AdminBot/Dockerfile
-    restart: on-failure
-    depends_on:
-      funandchecks-api:
-        condition: service_healthy
-    environment:
-      - DOTNET_ENVIRONMENT=Production
-      - BotConfiguration__BotToken=${ADMIN_BOT_TOKEN}
-      - ApiConfiguration__BaseUrl=http://funandchecks-api:${API_INTERNAL_PORT}
-      - ApiConfiguration__SharedSecret=${SHARED_SECRET}
 
 volumes:
   pgdata:
