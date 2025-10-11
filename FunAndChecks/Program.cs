@@ -182,8 +182,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapRazorPages();
 
-app.MapHub<QueueHub>("/queueHub");
-app.MapHub<ResultsHub>("/resultsHub");
+app.MapHub<QueueHub>("/apiHub/queueHub");
+app.MapHub<ResultsHub>("/apiHub/resultsHub");
 
 using (var scope = app.Services.CreateScope())
 {

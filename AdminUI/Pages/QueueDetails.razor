@@ -103,7 +103,7 @@ else
     private async Task InitializeSignalR()
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavManager.ToAbsoluteUri("/queueHub"))
+            .WithUrl(NavManager.ToAbsoluteUri("/apiHub/queueHub"))
             .WithAutomaticReconnect()
             .Build();
 
