@@ -1,26 +1,19 @@
-﻿**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.ignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/.idea
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/azds.yaml
+﻿# Исключаем служебные папки .NET, где бы они ни находились
 **/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
 **/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-LICENSE
-README.md
+
+# Исключаем Git-репозиторий
+.git
+.gitignore
+
+# Исключаем папки IDE, которые могут содержать большие кэши
+.vs/
+.vscode/
+.idea/
+
+# Исключаем пользовательские файлы проекта
+*.csproj.user
+*.sln.DotSettings.user
+
+# Исключаем сгенерированные файлы Rider
+.idea/.idea.FunAndChecks/.idea/
