@@ -4,14 +4,14 @@ WORKDIR /src
 
 # Копируем .csproj файлы для обоих проектов для эффективного кэширования слоев
 COPY ["FunAndChecks/FunAndChecks.csproj", "FunAndChecks/"]
-COPY ["FunAndChecks.AdminUI/FunAndChecks.AdminUI.csproj", "FunAndChecks.AdminUI/"]
+COPY ["AdminUI/AdminUI.csproj", "AdminUI/"]
 
 # Восстанавливаем NuGet-пакеты
 RUN dotnet restore "FunAndChecks/FunAndChecks.csproj"
 
 # Копируем ИСХОДНЫЙ КОД только для нужных проектов
 COPY ["FunAndChecks/", "FunAndChecks/"]
-COPY ["FunAndChecks.AdminUI/", "FunAndChecks.AdminUI/"]
+COPY ["AdminUI/", "AdminUI/"]
 
 # Публикуем основной API проект
 RUN dotnet publish "FunAndChecks/FunAndChecks.csproj" -c Release -o /app/publish /p:UseAppHost=false
