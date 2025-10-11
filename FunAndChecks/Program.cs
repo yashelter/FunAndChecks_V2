@@ -166,13 +166,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseWebAssemblyDebugging();
 }
+
+
+app.UseHttpsRedirection();
+app.UseBlazorFrameworkFiles();
+
 app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors("myAllowSpecificOrigins");
-app.UseBlazorFrameworkFiles();
-app.UseHttpsRedirection();
-
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -182,7 +184,6 @@ app.MapRazorPages();
 
 app.MapHub<QueueHub>("/queueHub");
 app.MapHub<ResultsHub>("/resultsHub");
-app.MapFallbackToFile("index.html");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -215,6 +216,9 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+
+app.MapFallbackToFile("index.html");
+
 
 try
 {
