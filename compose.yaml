@@ -37,14 +37,12 @@
     image: funandchecks-api
     build:
       context: .
-      dockerfile: FunAndChecks/Dockerfile
+      dockerfile: Dockerfile
     restart: always
     user: root
     depends_on:
       db:
         condition: service_healthy
-    #ports:
-    #  - "${API_EXTERNAL_PORT}:${API_INTERNAL_PORT}"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:${API_INTERNAL_PORT}
