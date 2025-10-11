@@ -132,6 +132,21 @@ builder.Services.AddHealthChecks()
     );
 
 
+var DevelopmentCorsPolicy = "DevelopmentCorsPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: DevelopmentCorsPolicy,
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
+
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -141,21 +156,25 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseWebAssemblyDebugging();
 }
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseCors(DevelopmentCorsPolicy);
+app.UseBlazorFrameworkFiles();
 app.UseHttpsRedirection();
+
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapRazorPages();
 
-
-
 app.MapHub<QueueHub>("/queueHub");
 app.MapHub<ResultsHub>("/resultsHub");
+app.MapFallbackToFile("index.html");
 
 using (var scope = app.Services.CreateScope())
 {
