@@ -1,5 +1,6 @@
-@page "/destructive-operations"
-@attribute [Authorize]
+@layout AdminMainLayout
+@page "/admin/destructive-operations"
+@attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService

@@ -1,5 +1,6 @@
-@page "/management"
-@attribute [Authorize]
+@layout AdminMainLayout
+@page "/admin/management"
+@attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @using System.Text.RegularExpressions

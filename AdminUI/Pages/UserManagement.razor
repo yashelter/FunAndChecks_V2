@@ -1,5 +1,6 @@
-@page "/user-management"
-@attribute [Authorize]
+@layout AdminMainLayout
+@page "/admin/user-management"
+@attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService

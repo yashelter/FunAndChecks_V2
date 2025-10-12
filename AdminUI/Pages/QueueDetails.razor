@@ -1,5 +1,6 @@
-@page "/queue/{EventId:int}"
-@attribute [Authorize]
+@layout AdminMainLayout
+@page "/admin/queue/{EventId:int}"
+@attribute [Authorize(Roles = "Admin")]
 @implements IAsyncDisposable
 @inject HttpClient Http
 @inject NavigationManager NavManager

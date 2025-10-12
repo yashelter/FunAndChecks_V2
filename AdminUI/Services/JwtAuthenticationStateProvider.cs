@@ -31,14 +31,13 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
 
-            // Проверяем, не истек ли срок действия токена
             if (jwtToken.ValidTo < DateTime.UtcNow)
             {
-                await _authService.LogoutAsync(); // Если истек, выходим из системы
+                await _authService.LogoutAsync(); 
                 return new AuthenticationState(_anonymous);
             }
 
-            var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+            var identity = new ClaimsIdentity(jwtToken.Claims, "jwt", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
             var user = new ClaimsPrincipal(identity);
 
             return new AuthenticationState(user);

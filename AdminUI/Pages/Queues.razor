@@ -1,6 +1,7 @@
-@page "/queues"
+@layout AdminMainLayout
+@page "/admin/queues"
+@attribute [Authorize(Roles = "Admin")]
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavManager
 
