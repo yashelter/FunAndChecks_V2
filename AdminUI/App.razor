@@ -1,7 +1,7 @@
 ﻿<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(AdminMainLayout)">
                 <NotAuthorized>
                     <MudText Typo="Typo.h5" Align="Align.Center" Class="mt-10">Доступ запрещен</MudText>
                     <MudText Align="Align.Center">Пожалуйста, <MudLink Href="/login">войдите в систему</MudLink>, чтобы увидеть эту страницу.</MudText>
@@ -14,7 +14,7 @@
         </Found>
         <NotFound>
             <PageTitle>Не найдено</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
+            <LayoutView Layout="@typeof(AdminMainLayout)">
                 <MudAlert Severity="Severity.Error">Извините, по этому адресу ничего нет.</MudAlert>
             </LayoutView>
         </NotFound>

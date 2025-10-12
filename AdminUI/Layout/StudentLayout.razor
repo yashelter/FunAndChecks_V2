@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @inject ThemeService ThemeService
 @implements IAsyncDisposable
 
@@ -21,7 +21,7 @@
     
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader><MudText Typo="Typo.h6">Меню</MudText></MudDrawerHeader>
-        <AdminNavMenu />
+        <StudentNavMenu />
     </MudDrawer>
 
     <MudMainContent>

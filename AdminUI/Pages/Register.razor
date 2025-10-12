@@ -1,0 +1,48 @@
+@page "/register"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+<MudGrid Justify="Justify.Center" Class="mt-12">
+    <MudItem xs="12" sm="8" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Регистрация</MudText>
+            <MudForm @ref="_form">
+                <MudTextField @bind-Value="_regDto.FirstName" Label="Имя" Required="true" />
+                <MudTextField @bind-Value="_regDto.LastName" Label="Фамилия" Required="true" />
+                <MudTextField @bind-Value="_regDto.Email" Label="Email" InputType="InputType.Email" Required="true" />
+                <MudTextField @bind-Value="_regDto.Password" Label="Пароль" InputType="InputType.Password" Required="true" />
+                <MudSelect T="int" @bind-Value="_regDto.GroupId" Label="Группа" Required="true">
+                    @foreach(var group in _groups) { <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem> }
+                </MudSelect>
+            </MudForm>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleRegister" Class="mt-4">Зарегистрироваться</MudButton>
+            <MudButton OnClick='() => NavManager.NavigateTo("/login")' Class="mt-2">Уже есть аккаунт? Войти</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private MudForm _form;
+    private RegisterUserDto _regDto = new();
+    private List<GroupDto> _groups = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _groups = await Http.GetFromJsonAsync<List<GroupDto>>("/api/Public/get-all/groups");
+    }
+
+    private async Task HandleRegister()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        var response = await Http.PostAsJsonAsync("/api/Auth/register", _regDto);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Регистрация успешна! Теперь вы можете войти.", Severity.Success);
+            NavManager.NavigateTo("/login");
+        }
+        else { Snackbar.Add("Ошибка регистрации", Severity.Error); }
+    }
+}
