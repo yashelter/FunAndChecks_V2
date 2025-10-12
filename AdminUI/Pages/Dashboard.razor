@@ -1,6 +1,6 @@
 @page "/student/dashboard"
 @layout StudentLayout
-@attribute [Authorize(Roles = "Student")]
+@attribute [Authorize(Roles = "User")]
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 

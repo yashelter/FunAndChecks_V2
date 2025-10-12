@@ -29,7 +29,6 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             }
 
             var handler = new JwtSecurityTokenHandler();
-            handler.OutboundClaimTypeMap.Clear(); 
             
             var jwtToken = handler.ReadJwtToken(token);
 
