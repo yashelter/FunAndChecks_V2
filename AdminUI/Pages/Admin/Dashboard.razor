@@ -1,17 +1,32 @@
-@page "/student/dashboard"
-@layout StudentLayout
-@attribute [Authorize(Roles = "User")]
+@page "/admin/dashboard"
+@using System.Text
+@layout AdminMainLayout
+@attribute [Authorize(Roles = "Admin")]
 @inject HttpClient Http
 @inject ISnackbar Snackbar
+@inject FileDownloader FileDownloader
 
 
 <PageTitle>Результаты</PageTitle>
 
 <MudText Typo="Typo.h4">Результаты</MudText>
 
-<MudSelect T="SubjectDto" ValueChanged="OnSubjectSelected" Label="Выберите предмет" Class="my-4" Variant="Variant.Outlined">
-    @foreach (var subject in _subjects) { <MudSelectItem T="SubjectDto" Value="subject">@subject.Name</MudSelectItem> }
-</MudSelect>
+<MudGrid Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="my-4">
+    <MudItem xs="12" sm="6" md="4">
+        <MudSelect T="SubjectDto" ValueChanged="OnSubjectSelected" Label="Выберите предмет" Variant="Variant.Outlined">
+            @foreach (var subject in _subjects) { <MudSelectItem T="SubjectDto" Value="subject">@subject.Name</MudSelectItem> }
+        </MudSelect>
+    </MudItem>
+    <MudItem>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                   StartIcon="@Icons.Material.Filled.CloudDownload"
+                   OnClick="ExportToCsv"
+                   Disabled="@(_results == null || !_results.UserResults.Any())">
+            Скачать CSV
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
 
 @if (_isResultsLoading)
 {
@@ -53,6 +68,8 @@ else if (_results != null)
 
     private List<SortDefinition<UserResultDto>> _initialSortDefinitions;
 
+    private MudDataGrid<UserResultDto> _dataGrid;
+    
     public Dashboard() 
     {
         _initialSortDefinitions = new()
@@ -65,7 +82,7 @@ else if (_results != null)
 
     protected override async Task OnInitializedAsync()
     {
-        _subjects = await Http.GetFromJsonAsync<List<SubjectDto>>("/api/Users/me/subjects");
+        _subjects = await Http.GetFromJsonAsync<List<SubjectDto>>("/api/Public/get-all/subjects");
     }
 
     private async Task OnSubjectSelected(SubjectDto selectedSubject)
@@ -89,5 +106,46 @@ else if (_results != null)
             _isResultsLoading = false;
             StateHasChanged();
         }
+    }
+    private async Task ExportToCsv()
+    {
+        if (_dataGrid == null || _results == null) return;
+        
+        var sb = new StringBuilder();
+        var delimiter = ";";
+        
+        var headers = new List<string> { "ФИО", "Группа" };
+        headers.AddRange(_results.TaskHeaders.Select(th => th.TaskName));
+        headers.Add("Σ Баллы");
+        sb.AppendLine(string.Join(delimiter, headers));
+        
+        var filteredData =  _dataGrid.FilteredItems;
+
+        foreach (var userResult in filteredData)
+        {
+            var row = new List<string>
+            {
+                userResult.FullName,
+                userResult.GroupName
+            };
+
+            foreach (var taskHeader in _results.TaskHeaders)
+            {
+                var cell = userResult.Results[taskHeader.TaskId];
+                var display = cell.Status == SubmissionStatus.Accepted ? "+" : cell.DisplayValue;
+                row.Add(display);
+            }
+
+            row.Add(userResult.TotalPoints.ToString());
+            sb.AppendLine(string.Join(delimiter, row));
+        }
+        
+        var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
+        using var stream = new MemoryStream(csvBytes);
+        
+        var fileName = $"Results_{_results.SubjectName}_{DateTime.Now:yyyy-MM-dd}.csv";
+        await FileDownloader.DownloadFileFromStreamAsync(fileName, stream);
+        
+        Snackbar.Add("Экспорт в CSV завершен.", Severity.Success);
     }
 }

@@ -14,6 +14,7 @@ builder.Services.AddMudServices();
 
 builder.Services.AddTransient<AuthHeaderHandler>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FileDownloader>();
 
 builder.Services.AddHttpClient("Api", client =>
     {
