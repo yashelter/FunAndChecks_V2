@@ -43,7 +43,7 @@ else if (_results != null)
                                 <MudListItem T="SubmissionLogDto" Icon="@(log.Status == SubmissionStatus.Accepted ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Cancel)" IconColor="@(log.Status == SubmissionStatus.Accepted ? Color.Success : Color.Error)">
                                     <div class="d-flex flex-column">
                                         <MudText Typo="Typo.body2"><i>"@log.Comment"</i></MudText>
-                                        <MudText Typo="Typo.caption">Проверил: @log.AdminName (@log.SubmissionDate.ToLocalTime().ToString("g"))</MudText>
+                                        <MudText Typo="Typo.caption">Проверил: @log.AdminName (@log.SubmissionDate.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("ru-RU"))</MudText>
                                     </div>
                                 </MudListItem>
                             }

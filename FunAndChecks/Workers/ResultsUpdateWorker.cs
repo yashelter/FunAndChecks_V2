@@ -72,7 +72,11 @@ public class ResultsUpdateWorker : BackgroundService
         if (subject == null) return null;
 
         var users = await context.Users
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == "User"))
+            .Where(u => 
+                u.UserRoles.Any(ur => ur.Role.Name == "User") && 
+                u.GroupId != null &&
+                context.GroupSubjects.Any(gs => gs.SubjectId == subjectId && gs.GroupId == u.GroupId)
+            )
             .Include(u => u.Group)
             .Include(u => u.Submissions)
             .ThenInclude(s => s.Admin)

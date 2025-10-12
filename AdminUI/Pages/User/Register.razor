@@ -32,27 +32,30 @@
                     </MudItem>
                 </MudGrid>
                 
-                <MudTextField @bind-Value="_regDto.Email" Label="Email (необязательно)" InputType="InputType.Email" Variant="Variant.Outlined" Class="mt-3" />
+                <MudTextField @bind-Value="_regDto.Email" Label="Email" InputType="InputType.Email" Variant="Variant.Outlined" Class="mt-3" />
                 
                 <MudTextField @bind-Value="_regDto.Password" 
                               Label="Пароль" 
-                              InputType="InputType.Password" 
                               Required="true" 
                               Variant="Variant.Outlined" 
                               Class="mt-3"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@Icons.Material.Filled.Lock" />
+                              InputType="@(_isPasswordVisible ? InputType.Text : InputType.Password)" 
+                              Adornment="Adornment.End" 
+                              AdornmentIcon="@(_isPasswordVisible ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)" 
+                              OnAdornmentClick="TogglePasswordVisibility"
+                              AdornmentAriaLabel="Показать/скрыть пароль" />
                 
-                <MudSelect T="int" @bind-Value="_regDto.GroupId" Label="Выберите вашу группу" Required="true" Variant="Variant.Outlined" Class="mt-3" AnchorOrigin="Origin.BottomCenter">
+                
+                <MudSelect T="int?" @bind-Value="_regDto.GroupId" Label="Выберите вашу группу" Required="true" Variant="Variant.Outlined" Class="mt-3" AnchorOrigin="Origin.BottomCenter">
                     @if (_groups == null)
                     {
-                        <MudSelectItem T="int" Value="0" Disabled="true">Загрузка групп...</MudSelectItem>
+                        <MudSelectItem T="int?" Value="null" Disabled="true">Загрузка групп...</MudSelectItem>
                     }
                     else
                     {
                         @foreach(var group in _groups) 
                         { 
-                            <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem> 
+                            <MudSelectItem T="int?" Value="@group.Id">@group.Name</MudSelectItem> 
                         }
                     }
                 </MudSelect>
@@ -85,7 +88,13 @@
     private RegisterUserDto _regDto = new();
     private List<GroupDto> _groups;
     private bool _isProcessing = false;
+    private bool _isPasswordVisible = false;
 
+    private void TogglePasswordVisibility()
+    {
+        _isPasswordVisible = !_isPasswordVisible;
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         try
@@ -115,20 +124,12 @@
             
             if (response.IsSuccessStatusCode)
             {
-                // Можно сразу попытаться прочитать токен из ответа и залогинить пользователя автоматически
-                /*
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-                if (authResponse?.Token != null) { ... логика авто-логина ... }
-                */
-                
                 Snackbar.Add("Регистрация прошла успешно! Теперь вы можете войти.", Severity.Success);
-                // Небольшая задержка, чтобы пользователь увидел сообщение
                 await Task.Delay(1500);
                 NavManager.NavigateTo("/login");
             }
             else
             {
-                // Попытка прочитать текст ошибки от API (например, "Пользователь с таким именем уже существует")
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Snackbar.Add($"Ошибка регистрации: {errorContent}", Severity.Error);
             }

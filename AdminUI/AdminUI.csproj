@@ -16,5 +16,15 @@
         <PackageReference Include="MudBlazor" Version="8.13.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Pages\Admin\DestructiveOperations.razor" />
+      <AdditionalFiles Include="Pages\Admin\Management.razor" />
+      <AdditionalFiles Include="Pages\Admin\QueueDetails.razor" />
+      <AdditionalFiles Include="Pages\Admin\Queues.razor" />
+      <AdditionalFiles Include="Pages\Admin\UserManagement.razor" />
+      <AdditionalFiles Include="Pages\Shared\Login.razor" />
+      <AdditionalFiles Include="Pages\Shared\Logout.razor" />
+    </ItemGroup>
     
 </Project>

@@ -10,7 +10,7 @@ public class RegisterUserDto
         string lastName, 
         string email, 
         string password, 
-        int groupId,
+        int? groupId,
         string telegramUsername,
         long? telegramUserId,
         string? gitHubUrl)
@@ -29,7 +29,7 @@ public class RegisterUserDto
     public string LastName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
-    public int GroupId { get; set; }
+    public int? GroupId { get; set; }
     public string TelegramUsername { get; set; }
     public long? TelegramUserId { get; set; }
     public string? GitHubUrl { get; set; }

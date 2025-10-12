@@ -166,7 +166,7 @@ public class UsersController(
         return Ok(subjects);
     }
     /// <summary>
-    /// Получает список активных событий в очереди, на которые может записан текущий пользователь.
+    /// Получает список активных событий в очереди, на которые записан текущий пользователь.
     /// </summary>
     [HttpGet("me/queue-events")]
     [ProducesResponseType(typeof(List<QueueEventDto>), 200)]

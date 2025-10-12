@@ -30,7 +30,7 @@ else
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText>Дата: @queue.EventDateTime.ToString("g")</MudText>
+                        <MudText>Дата: @queue.EventDateTime.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("ru-RU"))</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -57,6 +57,6 @@ else
 
     private void NavigateToQueue(int eventId)
     {
-        NavManager.NavigateTo($"/queue/{eventId}");
+        NavManager.NavigateTo($"/admin/queue/{eventId}");
     }
 }

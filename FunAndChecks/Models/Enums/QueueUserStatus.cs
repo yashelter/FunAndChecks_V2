@@ -7,6 +7,6 @@ public enum QueueUserStatus
 {
     Checking = 0,   // Проверяется
     Waiting = 1,    // Ожидает
-    Finished = 2,   // Закончил
-    Skipped = 3     // Пропущен
+    Skipped = 2,     // Пропущен
+    Finished = 3,   // Закончил
 }

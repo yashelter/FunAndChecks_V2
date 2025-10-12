@@ -26,7 +26,6 @@
                 </MudPaper>
             </MudTabPanel>
             
-            @* --- ПОЛНОСТЬЮ ПЕРЕРАБОТАННАЯ ВКЛАДКА "ЗАДАЧИ" --- *@
             <MudTabPanel Text="Задачи">
                 @if (_isLoadingTasks)
                 {
@@ -60,7 +59,7 @@
                                             <MudListItem T="TaskLog" Item="log" Icon="@(log.Status == SubmissionStatus.Accepted ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" IconColor="@(log.Status == SubmissionStatus.Accepted ? Color.Success : Color.Error)">
                                                 <div class="d-flex flex-column">
                                                     <MudText Typo="Typo.body2"><i>"@log.Comment"</i></MudText>
-                                                    <MudText Typo="Typo.caption">@log.Admin?.LastName (@log.SubmissionDate.ToLocalTime().ToString("g"))</MudText>
+                                                    <MudText Typo="Typo.caption">@log.Admin?.Name (@log.SubmissionDate.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("ru-RU"))</MudText>
                                                 </div>
                                             </MudListItem>
                                         }
@@ -111,7 +110,6 @@
             
             if (_tasks != null && _tasks.Any())
             {
-                // 2. Создаем и запускаем параллельно запросы на получение истории для КАЖДОЙ задачи
                 var historyTasks = _tasks.Select(task => LoadTaskHistory(task.Id)).ToList();
                 await Task.WhenAll(historyTasks);
             }
@@ -126,7 +124,6 @@
         }
     }
     
-    // Этот метод теперь просто загружает данные и кладет их в словарь
     private async Task LoadTaskHistory(int taskId)
     {
         try
@@ -178,9 +175,7 @@
         if (response.IsSuccessStatusCode)
         {
             Snackbar.Add("Статус задачи обновлен", Severity.Success);
-            // Вместо полной перезагрузки, просто обновляем историю для конкретной задачи
             await LoadTaskHistory(taskId); 
-            // И обновляем статус в основной модели, чтобы UI немедленно отреагировал
             var taskToUpdate = _tasks.FirstOrDefault(t => t.Id == taskId);
             if (taskToUpdate != null) taskToUpdate.Status = status;
             StateHasChanged();

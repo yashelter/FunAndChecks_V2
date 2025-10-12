@@ -77,7 +77,7 @@ else
                                         @foreach(var log in _logsForSelectedTask.OrderByDescending(l => l.SubmissionDate))
                                         {
                                             <MudListItem T="TaskLog" Icon="@(log.Status == SubmissionStatus.Accepted ? Icons.Material.Filled.Check : Icons.Material.Filled.Close)" IconColor="@(log.Status == SubmissionStatus.Accepted ? Color.Success : Color.Error)">
-                                                "@log.Comment" - @log.Admin?.LastName (@log.SubmissionDate.ToLocalTime().ToString("g"))
+                                                "@log.Comment" - @log.Admin?.LastName (@log.SubmissionDate.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo("ru-RU"))
                                             </MudListItem>
                                         }
                                     </MudList>
