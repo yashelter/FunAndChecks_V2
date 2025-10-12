@@ -165,6 +165,32 @@ public class UsersController(
 
         return Ok(subjects);
     }
+    /// <summary>
+    /// Получает список активных событий в очереди, на которые может записан текущий пользователь.
+    /// </summary>
+    [HttpGet("me/queue-events")]
+    [ProducesResponseType(typeof(List<QueueEventDto>), 200)]
+    public async Task<ActionResult<List<QueueEventDto>>> GetMyQueueEvents()
+    {
+        var userId = GetCurrentUserId();
+        var user = await context.Users.FindAsync(userId);
+
+        if (user?.GroupId == null)
+        {
+            return Ok(new List<QueueEventDto>());
+        }
+
+        var now = DateTime.UtcNow - TimeSpan.FromDays(1);
+        var availableEvents = await context.QueueEvents
+            .Where(qe => qe.EventDateTime > now)
+            .Where(qe => qe.Subject.GroupSubjects.Any(gs => gs.GroupId == user.GroupId))
+            .Where(qe => qe.Participants.Any(p => p.UserId == userId))
+            .OrderBy(qe => qe.EventDateTime)
+            .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))
+            .ToListAsync();
+
+        return Ok(availableEvents);
+    }
 
     /// <summary>
     /// Получает список активных событий в очереди, на которые может записаться текущий пользователь.
@@ -181,11 +207,9 @@ public class UsersController(
             return Ok(new List<QueueEventDto>());
         }
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow - TimeSpan.FromDays(1);
         var availableEvents = await context.QueueEvents
-            // Выбираем только будущие события
             .Where(qe => qe.EventDateTime > now)
-            // И только те, предмет которых доступен группе пользователя
             .Where(qe => qe.Subject.GroupSubjects.Any(gs => gs.GroupId == user.GroupId))
             .OrderBy(qe => qe.EventDateTime)
             .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))

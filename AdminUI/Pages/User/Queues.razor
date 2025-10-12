@@ -1,0 +1,91 @@
+@page "/student/queues"
+@layout StudentLayout
+@attribute [Authorize(Roles = "User")]
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager NavManager
+
+<PageTitle>Очереди</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Запись в очередь</MudText>
+
+@if (_isLoading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (_joinedQueueId.HasValue && _joinedQueueDetails != null)
+{
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h5">Вы записаны в очередь: <b>@_joinedQueueDetails.EventName</b></MudText>
+        <MudText>Ваша позиция будет видна после начала сдачи.</MudText>
+        <MudText>Когда подойдет ваша очередь, вы получите уведомление.</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="LeaveQueue" Class="mt-4">Выйти из очереди</MudButton>
+    </MudPaper>
+}
+else if (_availableEvents.Any())
+{
+    <MudText Typo="Typo.h5" GutterBottom="true">Доступные для записи:</MudText>
+    <MudStack Spacing="3">
+        @foreach(var ev in _availableEvents)
+        {
+            <MudPaper Outlined="true" Class="d-flex justify-space-between align-center pa-4">
+                <div>
+                    <MudText Typo="Typo.h6">@ev.Name</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Dark">@ev.EventDateTime.ToLocalTime().ToString("f")</MudText>
+                </div>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => JoinQueue(ev.Id))">Вступить</MudButton>
+            </MudPaper>
+        }
+    </MudStack>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">На данный момент нет доступных очередей для записи.</MudAlert>
+}
+
+
+@code {
+    private List<QueueEventDto> _availableEvents = new();
+    private QueueDetailsDto _joinedQueueDetails;
+    private int? _joinedQueueId;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _availableEvents = await Http.GetFromJsonAsync<List<QueueEventDto>>("/api/Users/me/available-queue-events");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Не удалось загрузить данные об очередях: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task JoinQueue(int eventId)
+    {
+        var response = await Http.PostAsync($"/api/Users/queue/{eventId}/join", null);
+        if (response.IsSuccessStatusCode)
+        {
+            _joinedQueueId = eventId;
+            // После вступления загружаем детали этой очереди для отображения
+            _joinedQueueDetails = await Http.GetFromJsonAsync<QueueDetailsDto>($"/api/Public/get/queue/{eventId}");
+            Snackbar.Add("Вы успешно вступили в очередь!", Severity.Success);
+        }
+        else { Snackbar.Add("Не удалось вступить в очередь", Severity.Error); }
+    }
+
+    private async Task LeaveQueue()
+    {
+        // TODO: Нужен API эндпоинт для выхода из очереди, например DELETE /api/Users/queue/{eventId}/leave
+        Snackbar.Add("Функция выхода из очереди пока не реализована.", Severity.Info);
+        // После успешного выхода:
+        // _joinedQueueId = null;
+        // _joinedQueueDetails = null;
+        // await OnInitializedAsync(); // Перезагружаем список доступных очередей
+    }
+}

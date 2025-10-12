@@ -1,46 +1,70 @@
 @page "/login"
-@using AdminUI.Services
 @inject AuthService AuthService
-@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager NavManager
 
-<MudPaper Class="pa-4" Elevation="3">
-    <MudForm @ref="_form">
-        <MudTextField T="string" Label="Имя пользователя (Telegram)" @bind-Value="_username" Required="true" />
-        <MudTextField T="string" Label="Пароль" @bind-Value="_password" InputType="InputType.Password" Required="true" />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="HandleLogin">Войти</MudButton>
-    </MudForm>
-</MudPaper>
-
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <MudAlert Severity="Severity.Error" Class="mt-4">@_errorMessage</MudAlert>
-}
+<MudGrid Justify="Justify.Center" Class="mt-12">
+    <MudItem xs="12" sm="8" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Вход в систему</MudText>
+            <MudForm @ref="_form" IsLoading="_isProcessing">
+                <MudTextField T="string" Label="Имя пользователя (Telegram)" @bind-Value="_username" Required="true" />
+                <MudTextField T="string" Label="Пароль" @bind-Value="_password" InputType="InputType.Password" Required="true" />
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" OnClick="HandleLogin" Disabled="_isProcessing">Войти</MudButton>
+            </MudForm>
+            <MudButton Variant="Variant.Text" OnClick='() => NavManager.NavigateTo("/register")' Class="mt-2">Нет аккаунта? Зарегистрироваться</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 @code {
     private MudForm _form;
     private string _username;
     private string _password;
-    private string _errorMessage;
+    private bool _isProcessing = false;
 
     private async Task HandleLogin()
     {
-        _errorMessage = string.Empty;
+        _isProcessing = true;
         await _form.Validate();
         if (!_form.IsValid)
         {
+            _isProcessing = false;
             return;
         }
 
         var success = await AuthService.LoginAsync(_username, _password);
         if (success)
         {
+            // Сообщаем системе, что состояние аутентификации изменилось
+            // Это обновит ClaimsPrincipal для всего приложения
             ((JwtAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication();
-            NavigationManager.NavigateTo("/queues");
+            
+            // Получаем свежее состояние аутентификации
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            // Анализируем роль и перенаправляем
+            if (user.IsInRole("Admin"))
+            {
+                NavManager.NavigateTo("/admin/queues"); // Главная страница для админа
+            }
+            else if (user.IsInRole("User"))
+            {
+                NavManager.NavigateTo("/student/dashboard"); // Главная страница для студента
+            }
+            else
+            {
+                // Если у пользователя нет роли (не должно происходить, но для безопасности)
+                NavManager.NavigateTo("/"); 
+            }
         }
         else
         {
-            _errorMessage = "Ошибка входа. Проверьте логин или пароль.";
+            Snackbar.Add("Ошибка входа. Проверьте логин или пароль.", Severity.Error);
+            _isProcessing = false;
         }
     }
 }

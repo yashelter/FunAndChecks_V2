@@ -3,21 +3,79 @@
 @inject NavigationManager NavManager
 @inject ISnackbar Snackbar
 
+<PageTitle>Регистрация</PageTitle>
+
 <MudGrid Justify="Justify.Center" Class="mt-12">
-    <MudItem xs="12" sm="8" md="4">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h5" GutterBottom="true">Регистрация</MudText>
-            <MudForm @ref="_form">
-                <MudTextField @bind-Value="_regDto.FirstName" Label="Имя" Required="true" />
-                <MudTextField @bind-Value="_regDto.LastName" Label="Фамилия" Required="true" />
-                <MudTextField @bind-Value="_regDto.Email" Label="Email" InputType="InputType.Email" Required="true" />
-                <MudTextField @bind-Value="_regDto.Password" Label="Пароль" InputType="InputType.Password" Required="true" />
-                <MudSelect T="int" @bind-Value="_regDto.GroupId" Label="Группа" Required="true">
-                    @foreach(var group in _groups) { <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem> }
+    <MudItem xs="12" sm="8" md="5">
+        <MudPaper Class="pa-6" Elevation="4">
+            <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">Регистрация</MudText>
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mb-4" Color="Color.Dark">Создайте аккаунт для доступа к системе FunAndChecks</MudText>
+            
+            <MudForm @ref="_form" IsLoading="_isProcessing">
+                <MudTextField T="string" 
+                              Label="@("Telegram Username (без @)")" 
+                              @bind-Value="_regDto.TelegramUsername" 
+                              Required="true" 
+                              RequiredError="Это поле будет вашим логином!" 
+                              HelperText="Используется для входа в систему"
+                              Adornment="Adornment.Start" 
+                              AdornmentIcon="@Icons.Material.Filled.AlternateEmail"
+                              Variant="Variant.Outlined" 
+                              Class="mb-3"/>
+
+                <MudGrid Spacing="2">
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_regDto.FirstName" Label="Имя" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_regDto.LastName" Label="Фамилия" Required="true" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+                
+                <MudTextField @bind-Value="_regDto.Email" Label="Email (необязательно)" InputType="InputType.Email" Variant="Variant.Outlined" Class="mt-3" />
+                
+                <MudTextField @bind-Value="_regDto.Password" 
+                              Label="Пароль" 
+                              InputType="InputType.Password" 
+                              Required="true" 
+                              Variant="Variant.Outlined" 
+                              Class="mt-3"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.Lock" />
+                
+                <MudSelect T="int" @bind-Value="_regDto.GroupId" Label="Выберите вашу группу" Required="true" Variant="Variant.Outlined" Class="mt-3" AnchorOrigin="Origin.BottomCenter">
+                    @if (_groups == null)
+                    {
+                        <MudSelectItem T="int" Value="0" Disabled="true">Загрузка групп...</MudSelectItem>
+                    }
+                    else
+                    {
+                        @foreach(var group in _groups) 
+                        { 
+                            <MudSelectItem T="int" Value="@group.Id">@group.Name</MudSelectItem> 
+                        }
+                    }
                 </MudSelect>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" Class="mt-6 py-2" OnClick="HandleRegister" Disabled="_isProcessing">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                        <MudText Class="ms-2">Регистрация...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Зарегистрироваться</MudText>
+                    }
+                </MudButton>
             </MudForm>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleRegister" Class="mt-4">Зарегистрироваться</MudButton>
-            <MudButton OnClick='() => NavManager.NavigateTo("/login")' Class="mt-2">Уже есть аккаунт? Войти</MudButton>
+            
+            <MudDivider Class="my-4" />
+            
+            <div class="d-flex justify-center">
+                <MudText Typo="Typo.body2">Уже есть аккаунт?</MudText>
+                <MudLink Href="/login" Class="ml-1" Color="Color.Primary" Underline="Underline.Hover">Войти</MudLink>
+            </div>
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -25,24 +83,63 @@
 @code {
     private MudForm _form;
     private RegisterUserDto _regDto = new();
-    private List<GroupDto> _groups = new();
+    private List<GroupDto> _groups;
+    private bool _isProcessing = false;
 
     protected override async Task OnInitializedAsync()
     {
-        _groups = await Http.GetFromJsonAsync<List<GroupDto>>("/api/Public/get-all/groups");
+        try
+        {
+            _groups = await Http.GetFromJsonAsync<List<GroupDto>>("/api/Public/get-all/groups");
+        }
+        catch
+        {
+            Snackbar.Add("Не удалось загрузить список групп.", Severity.Error);
+        }
     }
 
     private async Task HandleRegister()
     {
+        _isProcessing = true;
         await _form.Validate();
-        if (!_form.IsValid) return;
-
-        var response = await Http.PostAsJsonAsync("/api/Auth/register", _regDto);
-        if (response.IsSuccessStatusCode)
+        
+        if (!_form.IsValid) 
         {
-            Snackbar.Add("Регистрация успешна! Теперь вы можете войти.", Severity.Success);
-            NavManager.NavigateTo("/login");
+            _isProcessing = false;
+            return;
         }
-        else { Snackbar.Add("Ошибка регистрации", Severity.Error); }
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/Auth/register", _regDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                // Можно сразу попытаться прочитать токен из ответа и залогинить пользователя автоматически
+                /*
+                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                if (authResponse?.Token != null) { ... логика авто-логина ... }
+                */
+                
+                Snackbar.Add("Регистрация прошла успешно! Теперь вы можете войти.", Severity.Success);
+                // Небольшая задержка, чтобы пользователь увидел сообщение
+                await Task.Delay(1500);
+                NavManager.NavigateTo("/login");
+            }
+            else
+            {
+                // Попытка прочитать текст ошибки от API (например, "Пользователь с таким именем уже существует")
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Ошибка регистрации: {errorContent}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Произошла ошибка: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
     }
 }
