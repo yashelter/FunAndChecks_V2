@@ -134,6 +134,7 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddCors(options =>
 {
+    /*
     options.AddPolicy(name: "myAllowSpecificOrigins",
         policy =>
         {
@@ -143,14 +144,15 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
+        */
     
-    /*options.AddPolicy(name:  "DevelopmentCorsPolicy",
+    options.AddPolicy(name:  "DevelopmentCorsPolicy",
         policy =>
         {
             policy.AllowAnyOrigin()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
-        });*/
+        });
 });
 
 
@@ -174,7 +176,7 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseCors("myAllowSpecificOrigins");
+app.UseCors("DevelopmentCorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
