@@ -141,7 +141,14 @@ else if (_results != null)
         }
         
         var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
-        using var stream = new MemoryStream(csvBytes);
+
+        var bomBytes = Encoding.UTF8.GetPreamble();
+
+        using var stream = new MemoryStream();
+        await stream.WriteAsync(bomBytes, 0, bomBytes.Length);
+        await stream.WriteAsync(csvBytes, 0, csvBytes.Length);
+    
+        stream.Position = 0;
         
         var fileName = $"Results_{_results.SubjectName}_{DateTime.Now:yyyy-MM-dd}.csv";
         await FileDownloader.DownloadFileFromStreamAsync(fileName, stream);
