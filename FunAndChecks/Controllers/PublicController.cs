@@ -171,9 +171,27 @@ public class PublicController(ApplicationDbContext context) : ControllerBase
         return Ok(result);
     }
 
-
+    /// <summary>
+    /// Возвращает список событий, чья дата не истекла больше чем на 2 дня
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("get-all/queue/events")]
     public async Task<ActionResult<List<QueueEventDto>>> GetQueueEvents()
+    {
+        var now = DateTime.UtcNow - TimeSpan.FromDays(2);
+
+        return await context.QueueEvents
+            .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))
+            .Where(qe => qe.EventDateTime > now)
+            .ToListAsync();
+    }
+    
+    /// <summary>
+    /// Возвращает список всех событий
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("get-all/existing/queue-events")]
+    public async Task<ActionResult<List<QueueEventDto>>> GetQueueExistingEvents()
     {
         return await context.QueueEvents
             .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))
