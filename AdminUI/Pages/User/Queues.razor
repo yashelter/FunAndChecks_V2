@@ -158,7 +158,7 @@ else
         if (_hubConnection != null) await _hubConnection.DisposeAsync();
         
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavManager.ToAbsoluteUri("/queueHub"))
+            .WithUrl(NavManager.ToAbsoluteUri("/apiHub/queueHub"))
             .WithAutomaticReconnect()
             .Build();
 
