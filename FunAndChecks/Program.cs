@@ -134,7 +134,6 @@ builder.Services.AddHealthChecks()
 
 builder.Services.AddCors(options =>
 {
-    /*
     options.AddPolicy(name: "myAllowSpecificOrigins",
         policy =>
         {
@@ -144,7 +143,6 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
-        */
     
     options.AddPolicy(name:  "DevelopmentCorsPolicy",
         policy =>
@@ -176,7 +174,7 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseCors("DevelopmentCorsPolicy");
+app.UseCors("myAllowSpecificOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
