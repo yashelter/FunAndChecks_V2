@@ -181,8 +181,8 @@ public class PublicController(ApplicationDbContext context) : ControllerBase
         var now = DateTime.UtcNow - TimeSpan.FromDays(2);
 
         return await context.QueueEvents
-            .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))
             .Where(qe => qe.EventDateTime > now)
+            .Select(qe => new QueueEventDto(qe.Id, qe.Name, qe.EventDateTime))
             .ToListAsync();
     }
     
