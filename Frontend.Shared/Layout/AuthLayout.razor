@@ -8,6 +8,7 @@
 <MudSnackbarProvider />
 
 <div style="position: fixed; top: 12px; right: 12px; z-index: 10;">
+    <LangSwitcher />
     <MudIconButton OnClick="ToggleThemeAsync"
                    Icon="@(Theme.IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" />
 </div>

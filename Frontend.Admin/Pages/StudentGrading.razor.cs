@@ -1,7 +1,9 @@
 using Frontend.Admin.Dialogs;
 using Frontend.Shared.Api;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Admin.Pages;
@@ -12,6 +14,7 @@ public partial class StudentGrading
     [Inject] private StudentsApi Students { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
     private List<SubjectDto> _subjects = [];
     private List<StudentDetailsDto> _results = [];
@@ -53,7 +56,7 @@ public partial class StudentGrading
     {
         if (_subjectId is null)
         {
-            Snackbar.Add("Сначала выберите предмет.", Severity.Warning);
+            Snackbar.Add(Loc["Grading_SelectSubjectFirst"], Severity.Warning);
             return;
         }
 
@@ -68,7 +71,7 @@ public partial class StudentGrading
         };
 
         await DialogService.ShowAsync<StudentInteractionDialog>(
-            "Оценивание",
+            Loc["Grading_DialogTitle"],
             parameters,
             new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
     }

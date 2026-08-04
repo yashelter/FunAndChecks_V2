@@ -1,9 +1,11 @@
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Frontend.Shared.Api;
 
 /// <summary>Эндпоинты студентов — /api/students.</summary>
-public class StudentsApi(HttpClient http) : ApiClientBase(http)
+public class StudentsApi(HttpClient http, IStringLocalizer<AppStrings> loc) : ApiClientBase(http, loc)
 {
     public Task<StudentDto> GetAsync(Guid studentId, CancellationToken ct = default) =>
         GetAsync<StudentDto>($"api/students/{studentId}", ct);

@@ -5,7 +5,7 @@
     <DialogContent>
         @if (Options.Count == 0)
         {
-            <MudText Class="pa-2">Список пуст.</MudText>
+            <MudText Class="pa-2">@Loc["LinkDialog_Empty"]</MudText>
         }
         else
         {
@@ -19,8 +19,8 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Отмена</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Сохранить</MudButton>
+        <MudButton OnClick="Cancel">@Loc["Common_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">@Loc["Common_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -28,8 +28,9 @@
     public record LinkOption(int Id, string Name);
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
-    [Parameter] public string Title { get; set; } = "Доступ";
+    [Parameter] public string Title { get; set; } = "";
     [Parameter] public List<LinkOption> Options { get; set; } = [];
     [Parameter] public IReadOnlyCollection<int> SelectedIds { get; set; } = [];
 

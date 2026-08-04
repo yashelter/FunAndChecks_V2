@@ -1,7 +1,9 @@
 using Frontend.Shared.Api;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Frontend.Shared.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Shared.Pages;
@@ -11,6 +13,7 @@ public partial class Register
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private GroupsApi Groups { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
     private MudForm _form = null!;
     private List<GroupDto> _groups = [];
@@ -27,7 +30,7 @@ public partial class Register
     private bool _busy;
 
     private string? ValidateConfirm(string value) =>
-        value == _password ? null : "Пароли не совпадают";
+        value == _password ? null : Loc["Register_PasswordMismatch"];
 
     protected override async Task OnInitializedAsync()
     {

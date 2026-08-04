@@ -1,0 +1,15 @@
+@inject CultureService CultureSvc
+
+<MudButtonGroup Variant="Variant.Text" Color="Color.Inherit" Size="Size.Small">
+    <MudButton OnClick="@(() => CultureSvc.SetCultureAsync("en-US"))"
+               Style="@ActiveStyle("en-US")">EN</MudButton>
+    <MudButton OnClick="@(() => CultureSvc.SetCultureAsync("ru-RU"))"
+               Style="@ActiveStyle("ru-RU")">RU</MudButton>
+</MudButtonGroup>
+
+@code {
+    private string ActiveStyle(string culture) =>
+        CultureSvc.CurrentCulture == culture
+            ? "font-weight:700;text-decoration:underline;"
+            : string.Empty;
+}

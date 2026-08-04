@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Frontend.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Frontend.Shared.Api;
 
@@ -15,15 +17,15 @@ public static class HttpResponseExtensions
     private sealed record ProblemDetails(string? Detail, string? Title);
 
     /// <summary>Бросает <see cref="ApiException"/> с сообщением из ProblemDetails, если ответ неуспешен.</summary>
-    public static async Task EnsureSuccessAsync(this HttpResponseMessage response)
+    public static async Task EnsureSuccessAsync(this HttpResponseMessage response, IStringLocalizer<AppStrings> loc)
     {
         if (response.IsSuccessStatusCode)
             return;
 
-        throw new ApiException(response.StatusCode, await ReadErrorMessageAsync(response));
+        throw new ApiException(response.StatusCode, await ReadErrorMessageAsync(response, loc));
     }
 
-    public static async Task<string> ReadErrorMessageAsync(this HttpResponseMessage response)
+    public static async Task<string> ReadErrorMessageAsync(this HttpResponseMessage response, IStringLocalizer<AppStrings> loc)
     {
         try
         {
@@ -38,10 +40,10 @@ public static class HttpResponseExtensions
 
         return response.StatusCode switch
         {
-            HttpStatusCode.TooManyRequests => "Слишком много запросов. Попробуйте позже.",
-            HttpStatusCode.Unauthorized => "Требуется вход.",
-            HttpStatusCode.Forbidden => "Недостаточно прав.",
-            _ => $"Ошибка запроса ({(int)response.StatusCode}).",
+            HttpStatusCode.TooManyRequests => loc["Error_TooManyRequests"],
+            HttpStatusCode.Unauthorized => loc["Error_Unauthorized"],
+            HttpStatusCode.Forbidden => loc["Error_Forbidden"],
+            _ => loc["Error_RequestFailed", (int)response.StatusCode],
         };
     }
 }

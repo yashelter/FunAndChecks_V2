@@ -1,6 +1,8 @@
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Frontend.Shared.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Shared.Pages;
@@ -9,6 +11,7 @@ public partial class ConfirmEmail
 {
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
     /// <summary>Email можно передать в query (?email=...) — подставляется после регистрации.</summary>
     [Parameter, SupplyParameterFromQuery(Name = "email")]
@@ -56,11 +59,11 @@ public partial class ConfirmEmail
 
         if (string.IsNullOrWhiteSpace(_email))
         {
-            _error = "Укажите email, чтобы отправить код повторно.";
+            _error = Loc["ConfirmEmail_ResendNoEmail"];
             return;
         }
 
         await Auth.ResendConfirmationAsync(_email.Trim());
-        _info = "Если аккаунт существует и не подтверждён, код отправлен повторно.";
+        _info = Loc["ConfirmEmail_ResendSuccess"];
     }
 }

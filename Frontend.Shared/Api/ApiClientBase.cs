@@ -1,23 +1,26 @@
 using System.Net.Http.Json;
+using Frontend.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Frontend.Shared.Api;
 
 /// <summary>Базовые помощники для типизированных клиентов: вызов + разбор ошибок ProblemDetails.</summary>
-public abstract class ApiClientBase(HttpClient http)
+public abstract class ApiClientBase(HttpClient http, IStringLocalizer<AppStrings> loc)
 {
     protected HttpClient Http { get; } = http;
+    private readonly IStringLocalizer<AppStrings> _loc = loc;
 
     protected async Task<T> GetAsync<T>(string url, CancellationToken ct = default)
     {
         var response = await Http.GetAsync(url, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
         return (await response.Content.ReadFromJsonAsync<T>(ct))!;
     }
 
     protected async Task<TRes> PostAsync<TRes>(string url, object body, CancellationToken ct = default)
     {
         var response = await Http.PostAsJsonAsync(url, body, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
         return (await response.Content.ReadFromJsonAsync<TRes>(ct))!;
     }
 
@@ -26,13 +29,13 @@ public abstract class ApiClientBase(HttpClient http)
         using var response = body is null
             ? await Http.PostAsync(url, content: null, ct)
             : await Http.PostAsJsonAsync(url, body, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
     }
 
     protected async Task<TRes> PutAsync<TRes>(string url, object body, CancellationToken ct = default)
     {
         var response = await Http.PutAsJsonAsync(url, body, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
         return (await response.Content.ReadFromJsonAsync<TRes>(ct))!;
     }
 
@@ -41,12 +44,12 @@ public abstract class ApiClientBase(HttpClient http)
         using var response = body is null
             ? await Http.PutAsync(url, content: null, ct)
             : await Http.PutAsJsonAsync(url, body, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
     }
 
     protected async Task DeleteAsync(string url, CancellationToken ct = default)
     {
         using var response = await Http.DeleteAsync(url, ct);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(_loc);
     }
 }
