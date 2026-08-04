@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using Frontend.Shared.Api;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
+using Microsoft.Extensions.Localization;
 
 namespace Frontend.Shared.Services;
 
@@ -14,7 +16,7 @@ public record AuthResult(bool Success, string? Error = null)
 /// Сценарии аутентификации: вход, регистрация, подтверждение почты, сброс пароля.
 /// Хранит токен через <see cref="TokenStore"/>.
 /// </summary>
-public class AuthService(HttpClient http, TokenStore tokenStore)
+public class AuthService(HttpClient http, TokenStore tokenStore, IStringLocalizer<AppStrings> loc)
 {
     public Task<string?> GetTokenAsync() => tokenStore.GetTokenAsync();
 
@@ -22,11 +24,11 @@ public class AuthService(HttpClient http, TokenStore tokenStore)
     {
         var response = await http.PostAsJsonAsync("api/auth/login", request);
         if (!response.IsSuccessStatusCode)
-            return new AuthResult(false, await response.ReadErrorMessageAsync());
+            return new AuthResult(false, await response.ReadErrorMessageAsync(loc));
 
         var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
         if (string.IsNullOrEmpty(auth?.AccessToken) || string.IsNullOrEmpty(auth.RefreshToken))
-            return new AuthResult(false, "Сервер вернул пустые токены.");
+            return new AuthResult(false, loc["Auth_EmptyTokensError"]);
 
         await tokenStore.SetTokensAsync(auth.AccessToken, auth.RefreshToken);
         return AuthResult.Ok;
@@ -36,7 +38,7 @@ public class AuthService(HttpClient http, TokenStore tokenStore)
     public async Task<AuthResult> RegisterAsync(RegisterStudentRequest request)
     {
         var response = await http.PostAsJsonAsync("api/auth/register", request);
-        await response.EnsureSuccessAsync();
+        await response.EnsureSuccessAsync(loc);
         return AuthResult.Ok;
     }
 
@@ -45,7 +47,7 @@ public class AuthService(HttpClient http, TokenStore tokenStore)
         var response = await http.PostAsJsonAsync("api/auth/confirm-email", request);
         return response.IsSuccessStatusCode
             ? AuthResult.Ok
-            : new AuthResult(false, await response.ReadErrorMessageAsync());
+            : new AuthResult(false, await response.ReadErrorMessageAsync(loc));
     }
 
     public async Task ResendConfirmationAsync(string email) =>
@@ -59,7 +61,7 @@ public class AuthService(HttpClient http, TokenStore tokenStore)
         var response = await http.PostAsJsonAsync("api/auth/reset-password", request);
         return response.IsSuccessStatusCode
             ? AuthResult.Ok
-            : new AuthResult(false, await response.ReadErrorMessageAsync());
+            : new AuthResult(false, await response.ReadErrorMessageAsync(loc));
     }
 
     public async Task LogoutAsync()

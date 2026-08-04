@@ -1,8 +1,10 @@
 using Frontend.Shared.Api;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Frontend.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Student.Pages;
@@ -14,6 +16,7 @@ public partial class Queues : IAsyncDisposable
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
     private List<QueueEventDto> _myEvents = [];
     private List<QueueEventDto> _availableEvents = [];
@@ -47,7 +50,7 @@ public partial class Queues : IAsyncDisposable
         }
         catch (ApiException ex)
         {
-            Snackbar.Add($"Не удалось загрузить очереди: {ex.Message}", Severity.Error);
+            Snackbar.Add(string.Format(Loc["StudentQueues_LoadError"], ex.Message), Severity.Error);
         }
         finally
         {
@@ -60,7 +63,7 @@ public partial class Queues : IAsyncDisposable
         try
         {
             await QueuesApi.JoinAsync(eventId);
-            Snackbar.Add("Вы записались в очередь.", Severity.Success);
+            Snackbar.Add(Loc["StudentQueues_Joined"], Severity.Success);
             await LoadAllAsync();
         }
         catch (ApiException ex)
@@ -130,7 +133,7 @@ public partial class Queues : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                Snackbar.Add($"Не удалось подключиться к обновлениям: {ex.Message}", Severity.Warning);
+                Snackbar.Add(string.Format(Loc["Common_SignalRConnectError"], ex.Message), Severity.Warning);
             }
         }
         finally
@@ -152,15 +155,6 @@ public partial class Queues : IAsyncDisposable
         QueueEntryStatus.Waiting => Color.Info,
         QueueEntryStatus.Finished => Color.Success,
         _ => Color.Error,
-    };
-
-    private static string StatusText(QueueEntryStatus status, string? adminName) => status switch
-    {
-        QueueEntryStatus.Waiting => "В очереди",
-        QueueEntryStatus.Skipped => "Пропущен",
-        QueueEntryStatus.Checking => $"Сдаёт ({adminName ?? "админ"})",
-        QueueEntryStatus.Finished => "Завершил",
-        _ => "Неизвестно",
     };
 
     public async ValueTask DisposeAsync() => await DisposeHubAsync();

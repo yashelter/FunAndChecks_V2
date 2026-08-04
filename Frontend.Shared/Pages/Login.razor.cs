@@ -1,9 +1,11 @@
 using Frontend.Shared.Auth;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Frontend.Shared.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Shared.Pages;
@@ -13,6 +15,7 @@ public partial class Login
     [Inject] private AuthService Auth { get; set; } = null!;
     [Inject] private JwtAuthenticationStateProvider AuthState { get; set; } = null!;
     [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private IStringLocalizer<AppStrings> Loc { get; set; } = null!;
 
     private MudForm _form = null!;
     private string _email = string.Empty;
