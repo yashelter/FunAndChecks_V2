@@ -1,7 +1,9 @@
 using Frontend.Shared.Api;
 using Frontend.Shared.Components;
 using Frontend.Shared.Models;
+using Frontend.Shared.Resources;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 
 namespace Frontend.Admin.Dialogs;
@@ -9,6 +11,7 @@ namespace Frontend.Admin.Dialogs;
 public partial class EditStudentDialog : ComponentBase
 {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Inject] IStringLocalizer<AppStrings> Loc { get; set; } = null!;
     [Parameter] public Guid StudentId { get; set; }
     [Parameter] public StudentDetailsDto CurrentDetails { get; set; } = null!;
 

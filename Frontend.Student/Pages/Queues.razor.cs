@@ -122,7 +122,7 @@ public partial class Queues : IAsyncDisposable
                 }
                 catch (Exception ex)
                 {
-                    Snackbar.Add($"Ошибка при переподключении: {ex.Message}", Severity.Error);
+                    Snackbar.Add(string.Format(Loc["Common_SignalRReconnectError"], ex.Message), Severity.Error);
                 }
             };
 

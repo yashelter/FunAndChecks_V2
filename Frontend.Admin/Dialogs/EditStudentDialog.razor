@@ -9,25 +9,25 @@
         <EditForm Model="_model" OnValidSubmit="SubmitAsync">
             <ServerValidator @ref="_serverValidator" />
             <MudStack Spacing="3">
-                <MudTextField @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Label="Имя" Required="true" RequiredError="Укажите имя" />
-                <MudTextField @bind-Value="_model.LastName" For="@(() => _model.LastName)" Label="Фамилия" Required="true" RequiredError="Укажите фамилию" />
-                <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email" Required="true" RequiredError="Укажите email" InputType="InputType.Email" />
-                <MudTextField @bind-Value="_model.NewPassword" For="@(() => _model.NewPassword)" Label="Новый пароль (оставьте пустым чтобы не менять)" InputType="InputType.Password" />
-                
-                <MudSelect T="int?" @bind-Value="_model.GroupId" For="@(() => _model.GroupId)" Label="Группа">
-                    <MudSelectItem T="int?" Value="null">Без группы</MudSelectItem>
+                <MudTextField @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Label="@Loc["EditStudent_FirstNameLabel"]" Required="true" RequiredError="@Loc["EditStudent_FirstNameRequired"]" />
+                <MudTextField @bind-Value="_model.LastName" For="@(() => _model.LastName)" Label="@Loc["EditStudent_LastNameLabel"]" Required="true" RequiredError="@Loc["EditStudent_LastNameRequired"]" />
+                <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="@Loc["EditStudent_EmailLabel"]" Required="true" RequiredError="@Loc["Common_EmailRequired"]" InputType="InputType.Email" />
+                <MudTextField @bind-Value="_model.NewPassword" For="@(() => _model.NewPassword)" Label="@Loc["EditStudent_PasswordLabel"]" InputType="InputType.Password" />
+
+                <MudSelect T="int?" @bind-Value="_model.GroupId" For="@(() => _model.GroupId)" Label="@Loc["EditStudent_GroupLabel"]">
+                    <MudSelectItem T="int?" Value="null">@Loc["EditStudent_NoGroup"]</MudSelectItem>
                     @foreach (var group in _groups)
                     {
                         <MudSelectItem T="int?" Value="group.Id">@group.Name</MudSelectItem>
                     }
                 </MudSelect>
             </MudStack>
-            
+
             <div class="d-flex justify-end mt-4 gap-2">
-                <MudButton OnClick="Cancel">Отмена</MudButton>
+                <MudButton OnClick="Cancel">@Loc["Common_Cancel"]</MudButton>
                 <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="_busy">
                     @if (_busy) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
-                    Сохранить
+                    @Loc["Common_Save"]
                 </MudButton>
             </div>
         </EditForm>

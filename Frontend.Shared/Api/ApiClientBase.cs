@@ -76,7 +76,7 @@ public abstract class ApiClientBase(HttpClient http, IStringLocalizer<AppStrings
         }
         catch (Exception ex)
         {
-            throw new ApiException(HttpStatusCode.InternalServerError, string.Format(_loc["Common_UnknownError"].Value ?? "Неизвестная ошибка: {0}", ex.Message));
+            throw new ApiException(HttpStatusCode.InternalServerError, string.Format(_loc["Common_UnknownError"].Value, ex.Message));
         }
     }
 
@@ -96,7 +96,7 @@ public abstract class ApiClientBase(HttpClient http, IStringLocalizer<AppStrings
         }
         catch (Exception ex)
         {
-            throw new ApiException(HttpStatusCode.InternalServerError, string.Format(_loc["Common_UnknownError"].Value ?? "Неизвестная ошибка: {0}", ex.Message));
+            throw new ApiException(HttpStatusCode.InternalServerError, string.Format(_loc["Common_UnknownError"].Value, ex.Message));
         }
     }
 }

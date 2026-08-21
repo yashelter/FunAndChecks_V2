@@ -34,7 +34,6 @@
   <data name="Common_EmailRequired" xml:space="preserve"><value>Укажите email</value></data>
   <data name="Common_PasswordRequired" xml:space="preserve"><value>Укажите пароль</value></data>
   <data name="Common_BackToLogin" xml:space="preserve"><value>Ко входу</value></data>
-  <data name="Common_Submit" xml:space="preserve"><value>Подтвердить</value></data>
   <data name="Common_Yes" xml:space="preserve"><value>да</value></data>
   <data name="Common_No" xml:space="preserve"><value>нет</value></data>
   <data name="Common_Delete" xml:space="preserve"><value>Удалить</value></data>
@@ -43,10 +42,7 @@
   <data name="Common_Close" xml:space="preserve"><value>Закрыть</value></data>
   <data name="Common_Cancel" xml:space="preserve"><value>Отмена</value></data>
   <data name="Common_Save" xml:space="preserve"><value>Сохранить</value></data>
-  <data name="Common_Loading" xml:space="preserve"><value>Загрузка...</value></data>
   <data name="Common_SelectSubject" xml:space="preserve"><value>Выберите предмет</value></data>
-  <data name="Common_Name" xml:space="preserve"><value>Название</value></data>
-  <data name="Common_Date" xml:space="preserve"><value>Дата</value></data>
   <data name="Common_Reason" xml:space="preserve"><value>Причина: </value></data>
 
   <!-- ==================== App ==================== -->
@@ -106,8 +102,6 @@
   <data name="ResetPassword_CodeRequired" xml:space="preserve"><value>Введите код сброса</value></data>
   <data name="ResetPassword_NewPasswordLabel" xml:space="preserve"><value>Новый пароль</value></data>
   <data name="ResetPassword_NewPasswordRequired" xml:space="preserve"><value>Введите новый пароль</value></data>
-  <data name="ResetPassword_ConfirmPasswordLabel" xml:space="preserve"><value>Подтвердите новый пароль</value></data>
-  <data name="ResetPassword_PasswordMismatch" xml:space="preserve"><value>Пароли не совпадают</value></data>
   <data name="ResetPassword_SubmitButton" xml:space="preserve"><value>Сбросить пароль</value></data>
   <data name="ResetPassword_BackToLogin" xml:space="preserve"><value>Ко входу</value></data>
   <data name="ResetPassword_Subtitle" xml:space="preserve"><value>Введите код из письма и новый пароль.</value></data>
@@ -141,7 +135,6 @@
 
   <!-- ==================== Admin Dashboard ==================== -->
   <data name="Dashboard_Title" xml:space="preserve"><value>Результаты</value></data>
-  <data name="Dashboard_AppBarTitle" xml:space="preserve"><value>FunAndChecks · Админ</value></data>
   <data name="Dashboard_FullName" xml:space="preserve"><value>ФИО</value></data>
   <data name="Dashboard_Group" xml:space="preserve"><value>Группа</value></data>
 
@@ -173,71 +166,33 @@
   <data name="Management_ColDate" xml:space="preserve"><value>Дата</value></data>
   <data name="Management_ColSelfJoin" xml:space="preserve"><value>Самозапись</value></data>
   <data name="Management_DateHelper" xml:space="preserve"><value>дд.ММ.гггг ЧЧ:мм</value></data>
-  <data name="Management_CreateSubject" xml:space="preserve"><value>Создать предмет</value></data>
-  <data name="Management_SubjectNameLabel" xml:space="preserve"><value>Название предмета</value></data>
-  <data name="Management_CreateGroup" xml:space="preserve"><value>Создать группу</value></data>
-  <data name="Management_GroupNameLabel" xml:space="preserve"><value>Название группы</value></data>
-  <data name="Management_CreateTask" xml:space="preserve"><value>Создать задачу</value></data>
-  <data name="Management_TaskNameLabel" xml:space="preserve"><value>Название задачи</value></data>
-  <data name="Management_MaxPointsLabel" xml:space="preserve"><value>Макс. баллы</value></data>
-  <data name="Management_CreateGradeComponent" xml:space="preserve"><value>Создать оценочную колонку</value></data>
-  <data name="Management_GradeNameLabel" xml:space="preserve"><value>Название колонки</value></data>
   <data name="Management_MinPointsLabel" xml:space="preserve"><value>Мин. баллы</value></data>
-  <data name="Management_LinkGroupsTitle" xml:space="preserve"><value>Привязать группы к предмету</value></data>
-  <data name="Management_LinkAdminsTitle" xml:space="preserve"><value>Привязать админов к предмету</value></data>
 
   <!-- ==================== Queue Details ==================== -->
   <data name="QueueDetails_PageTitle" xml:space="preserve"><value>Очередь</value></data>
-  <data name="QueueDetails_ColPosition" xml:space="preserve"><value>#</value></data>
-  <data name="QueueDetails_ColName" xml:space="preserve"><value>ФИО</value></data>
-  <data name="QueueDetails_ColGroup" xml:space="preserve"><value>Группа</value></data>
-  <data name="QueueDetails_ColStatus" xml:space="preserve"><value>Статус</value></data>
-  <data name="QueueDetails_AddStudent" xml:space="preserve"><value>Добавить студента</value></data>
-  <data name="QueueDetails_SelectStudent" xml:space="preserve"><value>Выберите студента</value></data>
-  <data name="QueueDetails_AddButton" xml:space="preserve"><value>Добавить</value></data>
-  <data name="QueueDetails_SelfJoinOn" xml:space="preserve"><value>Самозапись включена</value></data>
-  <data name="QueueDetails_SelfJoinOff" xml:space="preserve"><value>Самозапись выключена</value></data>
 
   <!-- ==================== Admin Queues list ==================== -->
-  <data name="Queues_PageTitle" xml:space="preserve"><value>Очереди</value></data>
   <data name="Queues_Title" xml:space="preserve"><value>Очереди</value></data>
-  <data name="Queues_ColName" xml:space="preserve"><value>Название</value></data>
-  <data name="Queues_ColDate" xml:space="preserve"><value>Дата</value></data>
-  <data name="Queues_ColActions" xml:space="preserve"><value>Действия</value></data>
   <data name="Queues_Open" xml:space="preserve"><value>Открыть</value></data>
 
   <!-- ==================== Admin Management (admins) ==================== -->
   <data name="AdminMgmt_PageTitle" xml:space="preserve"><value>Администраторы</value></data>
   <data name="AdminMgmt_Title" xml:space="preserve"><value>Администраторы</value></data>
-  <data name="AdminMgmt_InviteTitle" xml:space="preserve"><value>Пригласить администратора</value></data>
   <data name="AdminMgmt_EmailLabel" xml:space="preserve"><value>Email</value></data>
   <data name="AdminMgmt_PasswordLabel" xml:space="preserve"><value>Пароль</value></data>
   <data name="AdminMgmt_FirstNameLabel" xml:space="preserve"><value>Имя</value></data>
   <data name="AdminMgmt_LastNameLabel" xml:space="preserve"><value>Фамилия</value></data>
   <data name="AdminMgmt_IsSuperAdmin" xml:space="preserve"><value>Суперадмин</value></data>
-  <data name="AdminMgmt_InviteButton" xml:space="preserve"><value>Пригласить</value></data>
-  <data name="AdminMgmt_ColName" xml:space="preserve"><value>ФИО</value></data>
-  <data name="AdminMgmt_ColEmail" xml:space="preserve"><value>Email</value></data>
-  <data name="AdminMgmt_ColSuperAdmin" xml:space="preserve"><value>Суперадмин</value></data>
 
   <!-- ==================== Student Grading ==================== -->
   <data name="Grading_PageTitle" xml:space="preserve"><value>Студенты и оценки</value></data>
   <data name="Grading_Title" xml:space="preserve"><value>Студенты и оценки</value></data>
   <data name="Grading_SelectSubject" xml:space="preserve"><value>Выберите предмет</value></data>
-  <data name="Grading_ColName" xml:space="preserve"><value>ФИО</value></data>
-  <data name="Grading_ColGroup" xml:space="preserve"><value>Группа</value></data>
-  <data name="Grading_ColTotal" xml:space="preserve"><value>Итого</value></data>
-  <data name="Grading_OpenButton" xml:space="preserve"><value>Открыть</value></data>
 
   <!-- ==================== Maintenance ==================== -->
   <data name="Maintenance_PageTitle" xml:space="preserve"><value>Обслуживание</value></data>
   <data name="Maintenance_Title" xml:space="preserve"><value>Обслуживание</value></data>
   <data name="Maintenance_BackupTitle" xml:space="preserve"><value>Резервная копия базы данных</value></data>
-  <data name="Maintenance_BackupButton" xml:space="preserve"><value>Скачать резервную копию</value></data>
-  <data name="Maintenance_BackupHint" xml:space="preserve"><value>Создаёт pg_dump текущей базы данных и скачивает его.</value></data>
-  <data name="Maintenance_CleanupTitle" xml:space="preserve"><value>Неподтверждённые аккаунты</value></data>
-  <data name="Maintenance_CleanupHint" xml:space="preserve"><value>Неподтверждённые аккаунты очищаются автоматически. Здесь доступен ручной запуск.</value></data>
-  <data name="Maintenance_CleanupButton" xml:space="preserve"><value>Запустить очистку</value></data>
 
   <!-- ==================== Student Interaction Dialog ==================== -->
   <data name="Dialog_TabTasks" xml:space="preserve"><value>Задачи</value></data>
@@ -263,50 +218,26 @@
 
   <!-- ==================== Comment Dialog ==================== -->
   <data name="CommentDialog_Title" xml:space="preserve"><value>Комментарий</value></data>
-  <data name="CommentDialog_Label" xml:space="preserve"><value>Комментарий (необязательно)</value></data>
   <data name="CommentDialog_Submit" xml:space="preserve"><value>Отправить</value></data>
-
-  <!-- ==================== Entity Link Dialog ==================== -->
-  <data name="LinkDialog_AddButton" xml:space="preserve"><value>Добавить</value></data>
-  <data name="LinkDialog_RemoveButton" xml:space="preserve"><value>Удалить</value></data>
 
   <!-- ==================== Student Queues ==================== -->
   <data name="StudentQueues_PageTitle" xml:space="preserve"><value>Очереди</value></data>
   <data name="StudentQueues_Title" xml:space="preserve"><value>Очереди</value></data>
-  <data name="StudentQueues_ColName" xml:space="preserve"><value>Очередь</value></data>
-  <data name="StudentQueues_ColDate" xml:space="preserve"><value>Дата</value></data>
-  <data name="StudentQueues_ColStatus" xml:space="preserve"><value>Мой статус</value></data>
-  <data name="StudentQueues_ColPosition" xml:space="preserve"><value>Позиция</value></data>
-  <data name="StudentQueues_JoinButton" xml:space="preserve"><value>Встать</value></data>
-  <data name="StudentQueues_LeaveButton" xml:space="preserve"><value>Покинуть</value></data>
-  <data name="StudentQueues_NotInQueue" xml:space="preserve"><value>Не в очереди</value></data>
 
   <!-- ==================== Student MyLogs ==================== -->
   <data name="MyLogs_PageTitle" xml:space="preserve"><value>История сдач</value></data>
-  <data name="MyLogs_Title" xml:space="preserve"><value>История сдач</value></data>
-  <data name="MyLogs_ColTask" xml:space="preserve"><value>Задача</value></data>
-  <data name="MyLogs_ColStatus" xml:space="preserve"><value>Статус</value></data>
-  <data name="MyLogs_ColAdmin" xml:space="preserve"><value>Проверил</value></data>
-  <data name="MyLogs_ColDate" xml:space="preserve"><value>Дата</value></data>
-  <data name="MyLogs_ColComment" xml:space="preserve"><value>Комментарий</value></data>
   <data name="MyLogs_SelectSubject" xml:space="preserve"><value>Выберите предмет</value></data>
-  <data name="MyLogs_Empty" xml:space="preserve"><value>Сдач ещё не было.</value></data>
 
   <!-- ==================== Public Results ==================== -->
   <data name="PublicResults_PageTitle" xml:space="preserve"><value>Результаты</value></data>
-  <data name="PublicResults_Title" xml:space="preserve"><value>Результаты</value></data>
-  <data name="PublicResults_SelectSubject" xml:space="preserve"><value>Выберите предмет</value></data>
 
   <!-- ==================== SubjectResultsView ==================== -->
   <data name="Results_ColName" xml:space="preserve"><value>ФИО</value></data>
   <data name="Results_ColGroup" xml:space="preserve"><value>Группа</value></data>
-  <data name="Results_ColTotal" xml:space="preserve"><value>Итого</value></data>
-  <data name="Results_NoData" xml:space="preserve"><value>Нет данных.</value></data>
 
   <!-- ==================== Common (extra) ==================== -->
   <data name="Common_Add" xml:space="preserve"><value>Добавить</value></data>
   <data name="Common_Access" xml:space="preserve"><value>Доступ</value></data>
-  <data name="Common_Create" xml:space="preserve"><value>Создать</value></data>
   <data name="Common_Saved" xml:space="preserve"><value>Сохранено.</value></data>
   <data name="Common_NetworkError" xml:space="preserve"><value>Ошибка сети. Проверьте подключение.</value></data>
   <data name="Common_UnknownError" xml:space="preserve"><value>Неизвестная ошибка: {0}</value></data>
@@ -315,6 +246,7 @@
   <data name="Common_Ok" xml:space="preserve"><value>ОК</value></data>
   <data name="Common_PointsAbbr" xml:space="preserve"><value>б.</value></data>
   <data name="Common_SignalRConnectError" xml:space="preserve"><value>Не удалось подключиться к обновлениям: {0}</value></data>
+  <data name="Common_SignalRReconnectError" xml:space="preserve"><value>Не удалось переподключиться к обновлениям: {0}</value></data>
   <data name="Common_LoadResultsError" xml:space="preserve"><value>Не удалось загрузить результаты: {0}</value></data>
 
   <!-- ==================== Task statuses ==================== -->
@@ -394,6 +326,8 @@
   <data name="Grading_NoStudents" xml:space="preserve"><value>Студенты не найдены.</value></data>
   <data name="Grading_SelectSubjectFirst" xml:space="preserve"><value>Сначала выберите предмет.</value></data>
   <data name="Grading_DialogTitle" xml:space="preserve"><value>Оценивание</value></data>
+  <data name="StudentGrading_EditProfileTitle" xml:space="preserve"><value>Редактирование профиля</value></data>
+  <data name="StudentGrading_ProfileUpdated" xml:space="preserve"><value>Профиль успешно обновлён.</value></data>
 
   <!-- ==================== Admin Management (extra) ==================== -->
   <data name="AdminMgmt_CreateTitle" xml:space="preserve"><value>Создать администратора</value></data>
@@ -423,6 +357,16 @@
 
   <!-- ==================== Entity Link Dialog (extra) ==================== -->
   <data name="LinkDialog_Empty" xml:space="preserve"><value>Список пуст.</value></data>
+
+  <!-- ==================== Edit Student Dialog (extra) ==================== -->
+  <data name="EditStudent_FirstNameLabel" xml:space="preserve"><value>Имя</value></data>
+  <data name="EditStudent_FirstNameRequired" xml:space="preserve"><value>Укажите имя</value></data>
+  <data name="EditStudent_LastNameLabel" xml:space="preserve"><value>Фамилия</value></data>
+  <data name="EditStudent_LastNameRequired" xml:space="preserve"><value>Укажите фамилию</value></data>
+  <data name="EditStudent_EmailLabel" xml:space="preserve"><value>Email</value></data>
+  <data name="EditStudent_PasswordLabel" xml:space="preserve"><value>Новый пароль (оставьте пустым чтобы не менять)</value></data>
+  <data name="EditStudent_GroupLabel" xml:space="preserve"><value>Группа</value></data>
+  <data name="EditStudent_NoGroup" xml:space="preserve"><value>Без группы</value></data>
 
   <!-- ==================== Student Interaction Dialog (extra) ==================== -->
   <data name="Dialog_CurrentGrade" xml:space="preserve"><value>Сейчас: {0}</value></data>

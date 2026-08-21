@@ -85,7 +85,7 @@ public partial class StudentGrading
         };
 
         var dialog = await DialogService.ShowAsync<EditStudentDialog>(
-            "Редактирование профиля",
+            Loc["StudentGrading_EditProfileTitle"],
             parameters,
             new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true });
 
@@ -93,7 +93,7 @@ public partial class StudentGrading
         if (!result.Canceled)
         {
             await SearchAsync();
-            Snackbar.Add("Профиль успешно обновлен.", Severity.Success);
+            Snackbar.Add(Loc["StudentGrading_ProfileUpdated"], Severity.Success);
         }
     }
 }
