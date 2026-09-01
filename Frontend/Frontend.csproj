@@ -9,6 +9,7 @@
              у него ETag-баг в dev). Без фингерпринтинга _framework имеет стабильные имена и
              грузится без import map. -->
         <WasmFingerprintAssets>false</WasmFingerprintAssets>
+        <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
     </PropertyGroup>
 
     <ItemGroup>
